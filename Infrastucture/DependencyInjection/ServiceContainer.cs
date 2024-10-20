@@ -14,7 +14,7 @@ namespace Infrastucture.DependencyInjection
     {
         public static IServiceCollection AddInfrastructureService(this IServiceCollection services, IConfiguration config)
         {
-            services.AddDbContext<AppDbContext>(o => o.UseSqlServer(config.GetConnectionString("Default")), ServiceLifetime.Scoped);
+            services.AddDbContext<AppDbContext>(o => o.UseSqlServer(config.GetConnectionString("AppDB")), ServiceLifetime.Scoped);
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = IdentityConstants.ApplicationScheme;

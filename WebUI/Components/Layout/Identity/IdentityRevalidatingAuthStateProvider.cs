@@ -21,9 +21,19 @@ namespace WebUI.Components.Layout.Identity
 			return await ValidateSecurityStampAsync(userManager, authenticationState.User);
 		}
 
-		private async Task<bool> ValidateSecurityStampAsync(UserManager<ApplicationUser> userManager, ClaimsPrincipal user)
+		private async Task<bool> ValidateSecurityStampAsync(UserManager<ApplicationUser> userManager, ClaimsPrincipal principal)
 		{
-			throw new NotImplementedException();
+			var user = await userManager.GetUserAsync(principal);
+			if (user is null)
+				return false;
+			else if (!userManager.SupportsUserSecurityStamp)
+				return true;
+			else
+			{
+				var principalStamp = principal.FindFirstValue(options.Value.ClaimsIdentity.SecurityStampClaimType);
+				var userStamp = await userManager.GetSecurityStampAsync(user);
+				return principalStamp == userStamp;
+			}
 		}
 	}
 }
