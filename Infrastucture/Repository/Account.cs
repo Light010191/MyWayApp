@@ -1,6 +1,7 @@
 ﻿using Application.DTO.Request.ActivityTracker;
 using Application.DTO.Request.Identity;
 using Application.DTO.Response;
+using Application.DTO.Response.ActivityTracker;
 using Application.DTO.Response.Identity;
 using Application.Extension.Identity;
 using Application.Interface.Identity;
@@ -191,22 +192,24 @@ namespace Infrastucture.Repository
 				return outcome;
 		}
 
-		//public async Task SaveActivityAsync(ActivityTrackerRequestDTO model)
-		//{
-		//	context.ActivityTracker.Add(model.Adapt(new Tracker()));
-		//	await context.SaveChangesAsync();
-		//}
+		public async Task SaveActivityAsync(ActivityTrackerRequestDTO model)
+		{
+			context.ActivityTracker.Add(model.Adapt(new Tracker()));
+			await context.SaveChangesAsync();
+		}
 
-		//public async Task<IEnumerable<ActivityTrackerRequestDTO>> GetActivitiesAsync(ActivityTrackerRequestDTO model)
-		//{
-		//	var list = new List<ActivityTrackerRequestDTO>();
-		//	var data = (await context.ActivityTracker.ToListAsync()).Adapt<List<ActivityTracker>>();
-		//	foreach (var activity in data)
-		//	{
-		//		activity.UserName = (await FindUserById(activity.UserId)).Name;
-		//		list.Add(activity);
-		//	}
-		//	return list;
-		//}
+		public async Task<IEnumerable<ActivityTrackerResponseDTO>> GetActivitiesAsync()
+		{
+			var list = new List<ActivityTrackerResponseDTO>();
+			var data = (await context.ActivityTracker.ToListAsync()).Adapt<List<ActivityTrackerResponseDTO>>();
+			foreach (var activity in data)
+			{
+				activity.UserName = (await FindUserById(activity.UserId)).Name;
+				list.Add(activity);
+			}
+			return data;
+		}
+
+		
 	}
 }
