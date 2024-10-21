@@ -1,9 +1,12 @@
-﻿using Application.DTO.Request.Identity;
+﻿using Application.DTO.Request.ActivityTracker;
+using Application.DTO.Request.Identity;
 using Application.DTO.Response;
 using Application.DTO.Response.Identity;
 using Application.Extension.Identity;
 using Application.Interface.Identity;
+using Domain.Entities.ActivityTracker;
 using Infrastucture.DataAccess;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -197,13 +200,13 @@ namespace Infrastucture.Repository
 		//public async Task<IEnumerable<ActivityTrackerRequestDTO>> GetActivitiesAsync(ActivityTrackerRequestDTO model)
 		//{
 		//	var list = new List<ActivityTrackerRequestDTO>();
-		//	var data = (await context.ActivityTracker.ToListAsync()).Adapt<List<ActivityTracker>>());
+		//	var data = (await context.ActivityTracker.ToListAsync()).Adapt<List<ActivityTracker>>();
 		//	foreach (var activity in data)
 		//	{
 		//		activity.UserName = (await FindUserById(activity.UserId)).Name;
 		//		list.Add(activity);
-		//	}		
-		//	return list;			
+		//	}
+		//	return list;
 		//}
 	}
 }
