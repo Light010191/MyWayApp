@@ -18,5 +18,6 @@ namespace Domain.Entities.Products
 		public int Quantity		  { get; set; }
 		public string Description { get; set; }
 		public string Base64Image { get; set; }
+		public DateTime DateAdded { get; set; }
 	}
 }
