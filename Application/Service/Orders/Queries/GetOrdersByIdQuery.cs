@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 
 namespace Application.Service.Orders.Queries
 {
-	public record GetOrdersByIdQuery(string UserId) : IRequest<IEnumerable<GetOrderResponseDTO>;
+	public record GetOrdersByIdQuery(string UserId) : IRequest<IEnumerable<GetOrderResponseDTO>>;
 		
 }

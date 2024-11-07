@@ -1,0 +1,103 @@
+﻿
+<AutorizeView>
+	<li class="nav-item mt-5">
+		<a class="nav-link" href="javascript:nv('app/home')">
+			<i class="mdi mdi-home menu-icon"></i>
+			<span class="menu-title">Home</span>
+		</a>
+	</li>
+</AutorizeView>
+<AutorizeView Policy="AdministrationPolicy">
+
+	@if (CanManageUser)
+	{
+		<li class="nav-item">
+			<a class="nav-link" data-toggle="collapse" href="#expand-user" aria-expanded="false" aria-controls="ui-">
+				<i class="modal-dialog mdi-account-settings menu-icon fs-4"></i>
+				<span class="menu-title">User Management</span>
+				<i class="menu-arrow"></i>
+			</a>
+			<div class="collapse" id="expand-user">
+				<ul class="nav flex-column sub-menu">
+					<li class="nav-item">
+						<a class="nav-link" href="javascript:nv('administration/account/create-user')">Add user</a>
+					</li>
+
+					<li class="nav-item">
+						<a class="nav-link" href="javascript:nv('administration/account/users/manage')">Manager</a>
+					</li>
+
+					<li class="nav-item">
+						<a class="nav-link" href="javascript:nv('administration/account/user-management-account')">User Manager</a>
+					</li>
+				</ul>
+			</div>
+		</li>		
+	}
+
+	<li class="nav-item">
+		<a class="nav-link" data-toggle="collapse" href="#expand-product" aria-expanded="false" aria-controls="ui-">
+			<i class="mdi mdi-cube menu-icon fs-4"></i>
+			<span class="menu-title">Product Management</span>
+			<i class="menu-arrow"></i>
+		</a>
+		<div class="collapse" id="expand-product">
+			<ul class="nav flex-column sub-menu">
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:nv('app/products/manage',1500)">Product</a>
+				</li>
+
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:nv('app/products/category/manage',700)">Categories</a>
+				</li>
+
+				<li class="nav-item">
+					<a class="nav-link" href="javascript:nv('app/products/location/manage',700)">Локации</a>
+				</li>
+			</ul>
+		</div>
+	</li>
+	@*Admin Orsers*@
+	<li class="nav-item">
+		<a class="nav-link" href="javascript:nv('app/administration/products/orders',2000)">
+			<i class="mdi mdi-cube-unfolded menu-icon"></i>
+			<span class="menu-title">Orders</span>			
+		</a>
+	</li>
+</AutorizeView>
+<AutorizeView Policy="@Policy.UserPolicy">
+	@*Client Orsers*@
+	<li class="nav-item">
+		<a class="nav-link" href="javascript:nv('app/products/orders',2000)">
+			<i class="mdi mdi-cube-unfolded menu-icon"></i>
+			<span class="menu-title">My Orders</span>
+		</a>
+	</li>
+</AutorizeView>
+<AutorizeView>
+	<MudBlazor.MudDivider Class="mt-5"/>
+	<li class="nav-item sidebar-actions">
+		<div class="nav-link">
+			<div>
+				<div class="border-none">
+					<p class="text-black">System Info</p>
+				</div>
+				<ul class="mt-4 pl-0">
+					<li>
+						<a>Version 1.0.0</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</li>
+</AutorizeView>
+
+@code {
+	[CascadingParameter] public Task<AuthenticationState>? myState { get; set; }
+
+	bool CanManageUser = false;
+	protected async override Task OnInitializedAsync()
+	{
+		CanManageUser = customAuthorizationService.CustomClaimChecker((await myState!).User, DefaultClaims.ManageUser);
+	}
+}

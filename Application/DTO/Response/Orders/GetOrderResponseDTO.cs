@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Application.DTO.Request.Orders;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,6 @@ namespace Application.DTO.Response.Orders
 		public decimal Price { get; set; }
 		public string ProductImage { get; set; }
 		public string ClientId { get; set; }
-		public string ClientName { get; set; }
+		public string ClientName { get; set; }		
 	}
 }

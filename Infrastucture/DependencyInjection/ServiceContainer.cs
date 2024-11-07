@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Application.Interface.Identity;
 using Infrastucture.Repository;
+using Infrastucture.Repository.Products.Handlers.Products;
 
 
 namespace Infrastucture.DependencyInjection
@@ -38,6 +39,8 @@ namespace Infrastucture.DependencyInjection
                 });
             services.AddCascadingAuthenticationState();
             services.AddScoped<IAccount, Account>();
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateProductHandler).Assembly));
+            services.AddScoped<DataAccess.IDbContextFactory<AppDbContext>, DbContextFactory<AppDbContext>>();
             return services;
         }
     }
