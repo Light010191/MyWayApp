@@ -25,13 +25,28 @@
 								<option>Select Policy</option>
 								@foreach(var policy in Policies!)
 								{
-									
+									<option value="@policy">@policy</option>
 								}
 							</InputSelect>
+							<FloatingText class="form-control mb-3" Label="User Password" Type="@passwordState.PasswordType" @bind-Value="UserModel.Password" />
+							<FloatingText class="form-control mb-3" Label="Confirm Password" Type="@passwordState.PasswordType" @bind-Value="UserModel.ConfirmPassword" />
+							<a class="btn btn-link text-decoration-none float-end" style="margin-top:-20px" @onclick="ChangePasswordType"><small>@passwordState.DisplayText</small></a>
+							<div class="form-group align-content-end">
+								@if (Loading)
+								{
+									< ButtonClass="btn btn-success mt-4 w-50 float-end" Text="Создание...."/>
+								}
+								else{
+									<button class="btn btn-success mt-4 w-50" type="submit">Создать Пользователя</button>
+								}
+							</div>
+							<hr class="text-primary" />
 						</div>
-					</div>
-					
-					
+
+						<div class="card-footer mt-5">
+							<ValidationSummary class="form-control text-danger text-decoration-none p-4" style="list-style:lower-latin; text-align:left"/>
+						</div>
+					</div>					
 				</EditForm>
 			</div>
 		</div>
@@ -43,30 +58,30 @@
 <NetcodeHubToast @ref="ToastComponent" Duration="4000"/>
 
 @code {
-    private Dictionary<string, string> BreadCumbs = new Dictionary<string, string>
+	private Dictionary<string, string> BreadCumbs = new Dictionary<string, string>
 	{
 		{"Home", "app/home"},
 		{"Add New User", null! }
 	}; 
-    [CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
-    private CreateUserRequestDTO UserModel { get; set; } = null;
-    NetcodeHubToast? ToastComponent;
-    private bool Loading = false;
-    List<string> Policies = new List<string>()
+	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
+	private CreateUserRequestDTO UserModel { get; set; } = null;
+	NetcodeHubToast? ToastComponent;
+	private bool Loading = false;
+	List<string> Policies = new List<string>()
 	{
 		new string(Policy.AdminPolicy),
 		new string(Policy.ManagerPolicy),
 		new string(Policy.UserPolicy)
 	};
 
-    private HubConnection? hubConnection;
+	private HubConnection? hubConnection;
 
-    private async Task RegisterAsync()
-    {
-        Loading = true;
-        await Task.Delay(3000);
-        var responce = await accountService.CreateUserAsync(UserModel);
-        await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+	private async Task RegisterAsync()
+	{
+		Loading = true;
+		await Task.Delay(3000);
+		var responce = await accountService.CreateUserAsync(UserModel);
+		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
 		{
 			UserId = (await UserAuthState!).User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name),
 			Title = "Create New User method called",
@@ -74,26 +89,26 @@
 			OperationState = responce.Flag,
 			Date = DateTime.Now.Date
 		});
-        if (responce.Flag)
-        {
-            await ToastComponent!.ShowSuccessToast("Info", responce.Message);
-            UserModel = new();
-        }
-        else
-        {
-            await ToastComponent!.ShowErrorToast("Alert", responce.Message);
-        }
-        Loading = false;		
-    }
+		if (responce.Flag)
+		{
+			await ToastComponent!.ShowSuccessToast("Info", responce.Message);
+			UserModel = new();
+		}
+		else
+		{
+			await ToastComponent!.ShowErrorToast("Alert", responce.Message);
+		}
+		Loading = false;		
+	}
 
-    protected async override Task OnInitializedAsync()
-    {
-        if (!customAuthorizationService.CustomClaimChecker((await UserAuthState!).User, Application.Extension.Identity.DefaultClaims.ManageUser))
-            NavManager.NavigateTo("Account/Access-Denied");
+	protected async override Task OnInitializedAsync()
+	{
+		if (!customAuthorizationService.CustomClaimChecker((await UserAuthState!).User, Application.Extension.Identity.DefaultClaims.ManageUser))
+			NavManager.NavigateTo("Account/Access-Denied");
 
 		passwordState.Changed+= StateHasChanged;
 		homeGenericState.StateChanged += StateButtonClicked;
-		hubConnection = ConnectionService.GetHubConnection();
+		hubConnection = connectionService.GetHubConnection();
 		hubConnection.On<string>("Notify", async (clientId) =>
 			{
 				await CallWhenNotified();
@@ -116,5 +131,13 @@
 		string adminOrderUrl = "app/adminisration/products/orders";
 		if (homeGenericState.IsAdmin)
 			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	}
+
+	void ChangePasswordType() => passwordState.ChangePasswordType();
+
+	public void Dispose()
+	{
+		homeGenericState.StateChanged -= StateButtonClicked;
+		passwordState.Changed -= StateHasChanged;
 	}
 }

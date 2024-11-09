@@ -1,5 +1,79 @@
-﻿<h3>UserManagementActivityLogPage</h3>
+﻿@page "/administration/account/user-management-activity-log"
+@rendermode InteractiveServer
 
+<PageTitle>Журнал активности</PageTitle>
+
+<ThreeSectionsTemplate>
+	<Col9Template>
+		<AdminHomeHeader />
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick="true" BackgroundColor="@BreadCrumbBackgroundColor.SuccessSubtle()"/>
+		<div class="row mt-2">
+			<div class="card shadow-lg">
+				<div class="card-body">
+					@if(Activities != null)
+					{
+						foreach (var group in Activities)
+						{
+							<MudTreeView T="string" Dense=true Hover=true>
+								<MudTreeViewItem Icon="@Icons.Material.Filled.Event" Value="@group.Key">
+									@foreach(var item in group)
+									{
+										<MudTreeViewItem Icon="@Icons.Material.Filled.VerifiedUser" Value="@($"Operation Title: {item.Title}")">
+											<MudTreeViewItem Icon="@Icons.Material.Filled.EventNote" Value="@($"Operation Description : {item.Description}")" />
+											<MudDivider/>
+											<MudTreeViewItem Icon="@Icons.Material.Filled.SupervisorAccount" Value="@($"Executed By: {item.Title}")" />
+											<MudTreeViewItem Icon="@Icons.Material.Filled.MarkChatRead" Value="@($"Success State: {item.Title}")" />
+										</MudTreeViewItem>										
+									}
+								</MudTreeViewItem>
+							</MudTreeView>
+						}
+					}
+				</div>
+			</div>
+		</div>
+	</Col9Template>
+	<Col3Template>
+		<Banner />
+	</Col3Template>
+	<FooterTemplate>
+		<Footer/>
+	</FooterTemplate>
+</ThreeSectionsTemplate>
 @code {
+	private Dictionary<string, string> BreadCumbs = new Dictionary<string, string>
+	{
+		{"Home", "app/home"},
+		{"Activity Logs", null! }
+	};
+	private HubConnection? hubConnection;
+	private IEnumerable<IGrouping<DateTime, ActivityTrackerResponseDTO>> Activities = [];
+	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
+	private async Task GetActivities() => Activities = await accountService.GroupActivitiesByDateAsync();
 
+	protected async override Task OnInitializedAsync()
+	{
+		if (!customAuthorizationService.CustomClaimChecker((await UserAuthState!).User, DefaultClaims.ManageUser))
+			NavManager.NavigateTo("Account/Access-Denied");
+
+		homeGenericState.StateChanged += StateButtonClicked;
+		await GetActivities();
+
+		hubConnection = connectionService.GetHubConnection();
+		hubConnection.On<string>("Notify", async (clientId) =>
+			{
+				await CallWhenNotified();
+			});
+		if (hubConnection == null)
+			await hubConnection!.StartAsync();
+	}
+
+	async Task CallWhenNotified()
+	{
+		await InvokeAsync(async () =>
+		{
+			StateHasChanged();
+			await adminActiveOrderCountState.GetActiveOrdersCount();
+		});
+	}
 }

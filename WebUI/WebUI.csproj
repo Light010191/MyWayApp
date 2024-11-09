@@ -32,4 +32,10 @@
 	  <ProjectReference Include="..\Infrastucture\Infrastucture.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Components\Pages\Content\Products\Category\" />
+	  <Folder Include="Components\Pages\Content\Products\Location\" />
+	  <Folder Include="Components\Pages\Content\Products\Orders\" />
+	</ItemGroup>
+
 </Project>

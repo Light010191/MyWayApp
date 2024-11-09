@@ -1,0 +1,62 @@
+﻿@rendermode InteractiveServer
+@implements IDisposable
+
+<div class="page-header flex-wrap" style="margin:0rem">
+	<h3 class="mb-0">
+		С возвращением!<span class="p-lg-0 h6 pl-sm-2 text-muted d-inline-block">Ваша система аналитики</span>
+	</h3>
+	<div class="d-flex">
+		<button type="button" class="btn btn-sm btn-outline-warning btn-icon-text border-1 position-relative ml-5" @onclick="(()=>homeGenericState.GetProcessingOrderButtonClicked(OrderState.Processing, true))">
+			<i class="mdi mdi-sync btn-icon-prepend"></i>
+			В процессе
+			<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning">
+				@userState.ProcessingCount
+				<span class="visually-hidden">непрочитанное сообщение</span>
+			</span>
+		</button>
+
+		<button type="button" class="btn btn-sm btn-outline-primary btn-icon-text border-1 position-relative  ml-5" @onclick="(()=>homeGenericState.GetProcessingOrderButtonClicked(OrderState.Waiting, true))">
+			<i class="mdi mdi-sync btn-icon-prepend"></i>
+			Ожидают
+			<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+				@userState.WaitingCount
+				<span class="visually-hidden">непрочитанное сообщение</span>
+			</span>
+		</button>
+
+		<button type="button" class="btn btn-sm btn-outline-danger btn-icon-text border-1 position-relative  ml-5" @onclick="(()=>homeGenericState.GetProcessingOrderButtonClicked(OrderState.Canceled, true))">
+			<i class="mdi mdi-sync btn-icon-prepend"></i>
+			Отмененные
+			<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+				@userState.CanceledCount
+				<span class="visually-hidden">непрочитанное сообщение</span>
+			</span>
+		</button>
+
+		<button type="button" class="btn btn-sm btn-outline-success btn-icon-text border-1 position-relative  ml-5" @onclick="(()=>homeGenericState.GetProcessingOrderButtonClicked(OrderState.Complete, true))">
+			<i class="mdi mdi-sync btn-icon-prepend"></i>
+			Завершенные
+			<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+				@userState.CompletedCount
+				<span class="visually-hidden">непрочитанное сообщение</span>
+			</span>
+		</button>
+	</div>
+</div>
+
+@code {
+	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		userState.StateChanged += StateHasChanged;
+		try
+		{
+			string userId = (await UserAuthState!).User!.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value;
+			await userState.GetActiveOrdersCount(userId);
+		}
+		catch{}
+	}
+
+	public void Dispose() => userState.StateChanged -= StateHasChanged;
+}
