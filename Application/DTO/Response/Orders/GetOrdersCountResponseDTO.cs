@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTO.Response.Orders
 {
-	public record GetOrdersCountResponseDTO(int Processing, int Waiting, int Complete, int Canceled)
+	public record GetOrdersCountResponseDTO(int Processing, int Waiting, int Completed, int Canceled)
 	{
 	}
 }

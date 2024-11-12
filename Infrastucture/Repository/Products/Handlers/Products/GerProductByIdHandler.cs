@@ -25,6 +25,7 @@ namespace Infrastucture.Repository.Products.Handlers.Products
 				CategoryId = product.CategoryId,
 				LocationId = product.LocationId,
 				Price = product.Price,
+				Quantity = product.Quantity,
 				DateAdded = product.DateAdded,
 				Location = new GetLocationResponseDTO
 				{Id = product.LocationId, Name = product.Location.Name},

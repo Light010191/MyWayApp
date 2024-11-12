@@ -1,5 +1,444 @@
-﻿<h3>ProductPage</h3>
+﻿@page "/app/products/manage"
+@using Application.Extension.Identity
+@using Syncfusion.Blazor.Navigations
+@attribute [Authorize(Policy = "AdministrationPolicy")]
+
+<PageTitle>Товары</PageTitle>
+<TwoSectionsTemplate>
+	<Col12Template>
+		<AdminHomeHeader/>
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" DeactivatedColor="@Color.Primary()" BackgroundColor="@BackgroundColor.Primary()"></NetcodeHubBreadCrumb>
+		<div class="row bg-primary py-2 mt-3" style="border-radius:20px">
+			<div class="col-lg-12 col-sm-12 col-md-12">
+				<div class="card border-1 shadow-lg" style="border-radius:20px">
+					<div class="card-header">
+						<button class="btn btn-outline-primary float-end" @onclick="CreateProductBtnClicked">
+							<i class="mdi mdi-plus"></i> Создать товар
+						</button>
+					</div>
+					<div class="card-body border-1 border-primary">
+						<div class="mb-5">
+							<input type="search" class="form-control float-end w-25 mb-2 p-2 border-secondary" placeholder="Поиск" @onchange="SearchProduct" />
+						</div>
+						<SfGrid DataSource="@PermanentProducts" AllowPaging="true" AllowSorting="true" AllowExcelExport="true" style="margin-top:35px;"
+							AllowGrouping=true AllowPdfExport="true" Toolbar="Toolbaritems" AllowSelection="true" AllowResizing="true" @ref="DefaultGrid">
+							<GridPageSettings PageSize="5"></GridPageSettings>
+							<GridSelectionSettings Type="SelectionType.Single" Mode="SelectionMode.Both"></GridSelectionSettings>
+							<GridEvents OnToolbarClick="ToolbarClickHandler" TValue="GetProductResponseDTO" RowSelected="RowSelectHandler"></GridEvents>
+							<GridColumns>
+								<GridColumn HeaderText="Image" AllowFiltering="false">
+									<Template>
+										@{
+											var product = (context as GetProductResponseDTO);
+											<div class="image">
+												<img src="@(product!.Base64Image)" alt="@product.Name" width="70" height="50"/>
+											</div>
+										}
+									</Template>
+								</GridColumn>
+								<GridColumn Field=@nameof(GetProductResponseDTO.DateAdded) HeaderText="Дата Добавления"></GridColumn>
+								<GridColumn Field=@nameof(GetProductResponseDTO.Id) HeaderText="Id"></GridColumn>
+								<GridColumn Field=@nameof(GetProductResponseDTO.Name) HeaderText="Наименование"></GridColumn>
+								<GridColumn Field=@nameof(GetProductResponseDTO.Price) HeaderText="Цена"></GridColumn>
+								<GridColumn Field=@nameof(GetProductResponseDTO.Quantity) HeaderText="Количество"></GridColumn>	
+								<GridColumn HeaderText="Категория" AllowFiltering="false">
+									<Template>
+										@{
+											var product = (context as GetProductResponseDTO);
+											<p>@(product!.Category.Name)</p>
+										}
+									</Template>
+								</GridColumn>
+								<GridColumn HeaderText="Локация" AllowFiltering="false">
+									<Template>
+										@{
+											var product = (context as GetProductResponseDTO);
+											<p>@(product!.Location.Name)</p>
+										}
+									</Template>
+								</GridColumn>
+								<GridColumn Field=@nameof(GetProductResponseDTO.Description) HeaderText="Описание"></GridColumn>
+
+							</GridColumns>
+						</SfGrid>
+					</div>
+				</div>
+			</div>
+		</div>
+		<Modal @bind-Open="IsOpen" 
+			BootstrapClass="border-primary rounded p-2 ml-2" 
+			CustomStyle="@ModalCustomStyle"> 
+
+			<ContentContent>
+				@if(ShowProductPage)
+				{
+					<div class="card border-1 shadow-sm">
+						<div class="card-header">
+							<i class="mdi mdi-folder-plus text-primary fs-4 px-3 menu-icon text-start"></i>
+							<span class="text-center text-primary fw-bold">@ModalTitle</span>
+							<i class="mdi mdi-close text-primary fw-bold float-end fs-4 cursorStyle" @onchange="StateButtonClicked"></i>
+						</div>
+					</div>
+					<div class="card-body">
+						<EditForm Model="ProductModel" OnValidSubmit="SaveProduct" Enhance>
+							<DataAnnotationsValidator/>
+							<div class="form-group">
+								<FloatingText Label="Наименование" @bind-Value="ProductModel.Name" class="form-control" />
+							</div>
+							<div class="form-group mt-3">
+								<label class="form-label">Цена</label>
+								<InputNumber @bind-Value="ProductModel.Price" class="form-control" />
+							</div>
+							<div class="form-group mt-3">
+								<FloatingNumber Label="Количество" @bind-Value="ProductModel.Quantity" class="form-control w-100" />
+							</div>
+							<div class="form-group mt-3">
+								<FloatingTextArea Label="Описание" @bind-Value="ProductModel.Description" class="form-control w-100" />
+							</div>
+							<div class="form-group mt-3">
+								<NetcodeHubFileUpload @ref="FileUploadComponent" Notify="RetrieveContent" RequiredExtensions="RequiredEx" />
+							</div
+							<div class="form-group mt-0">
+								<label class="form-label">Выберите Категорию</label>
+								<select class="form-select mb-3" @onchange="CategorySelectionChanged"> 
+									@if (Categories != null)
+									{
+										@if(SelectedProduct.Id != Guid.Empty)
+										{
+											
+										}
+									}
+								</select>
+							</div>
+						</EditForm>
+					</div>
+				}
+				@if (ShowConfirmationPage)
+				{
+					<div class="card">
+						<div class="card-header d-flex justify-content-between">
+							<i class="mdi mdi-delete-sweep text-danger fs-4 px-3 menu-icon text-start"></i>
+							<span class="d-flex text-center text-danger fw-bold">Подвердить удаление</span>
+							<i class="mdi mdi-close text-danger fw-bold float-end fs-4 cursorStyle" @onclick="CloseModal"></i>
+						</div>
+						<div class="card-body">Вы уверены, что хотите удалить этот продукт?</div>
+						<div class="card-footer">
+							@if (Loading)
+							{
+								<GenericSpinnerButton Text="Удаление..." ButtonClass="btn btn-danger"/>
+							}
+							else
+							{
+								<button class="btn btn-danger float-end" type="button" @onclick="ConfirmDelete">
+									<i class="mdi mdi-delete"></i>
+									Подтведить
+								</button>
+							}
+						</div>
+					</div>					
+				}
+			</ContentContent>
+		</Modal >
+	</Col12Template>
+	<FooterTemplate><Footer/></FooterTemplate>
+</TwoSectionsTemplate>
+<NetcodeHubToast @ref="ToastComponent"/>
 
 @code {
+	string ModalTitle = "Новый продукт";
+	private SfGrid<GetProductResponseDTO>? DefaultGrid;
+	NetcodeHubToast? ToastComponent;
+	string ModalCustomStyle = string.Empty;
+	string Search = string.Empty;
+	List<string> RequiredEx = [".jpg", ".png"];
+	NetcodeHubFileUpload? FileUploadComponent;
+	string Errors = "";
+	private bool ShowProductPage;
+	private bool ShowConfirmationPage;
+	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
+	{
+		{"Home","app/home"},
+		{"Manage Products", null!}
+	};
+	private List<ItemModel> Toolbaritems = new List<ItemModel>();
 
+	public bool Loading { get; set; } = false;
+	public int Duration { get; set; }
+	public bool IsOpen { get; set; }
+	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
+	private IEnumerable<GetProductResponseDTO> Products { get; set; } =[];
+	private IEnumerable<GetProductResponseDTO> PermanentProducts { get; set; } =[];
+	private IEnumerable<GetCategoryResponseDTO> Categories { get; set; } =[];
+	private IEnumerable<GetLocationResponseDTO> Locations { get; set; } =[];
+	private AddProductRequestDTO ProductModel { get; set; } = new();
+	private GetProductResponseDTO SelectedProduct = new();
+	ClaimsPrincipal? User;
+	private HubConnection? hubConnection;
+	bool CanDelete = false;
+
+	protected async override Task OnInitializedAsync()
+	{
+		User = (await UserAuthState!).User;
+		CanDelete = customAuthorizationService.CustomClaimChecker(User, DefaultClaims.Delete);
+		homeGenericState.StateChanged += StateButtonClicked;
+
+		await GetDefaults();
+		LoadToolbarItems();
+		hubConnection = connectionService.GetHubConnection();
+		hubConnection.On<string>("Notyfi", async (ClientId) =>
+		{
+			await CallWhenNotified();
+		});
+		if (hubConnection == null)
+			await hubConnection!.StartAsync();
+	}
+
+	async Task CallWhenNotified()
+	{
+		await InvokeAsync(async () =>
+		{
+			StateHasChanged();
+			await adminState.GetActiveOrdersCount();
+		});
+	}
+
+	void StateButtonClicked()
+	{
+		string adminOrderUrl = "app/administration/products/orders";
+		if(homeGenericState.IsAdmin)
+			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	}
+
+	private async Task GetDefaults()
+	{
+		await GetProducts();
+		await GetCategories();
+		await GetLocations();
+	}
+
+	async Task GetCategories()
+	{
+		using var scope = serviceProvider.CreateScope();
+		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+		var result = await mediator.Send(new GetAllCategoriesQuery());
+		Categories = result;
+	}
+
+	async Task GetLocations()
+	{
+		using var scope = serviceProvider.CreateScope();
+		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+		var result = await mediator.Send(new GetAllLocationsQuery());
+		Locations = result;
+	}
+
+	async Task GetProducts()
+	{
+		using var scope = serviceProvider.CreateScope();
+		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+		var result = await mediator.Send(new GetProductsQuery());
+		Products = result;
+		PermanentProducts = Products;
+	}
+
+	void LoadToolbarItems()
+	{
+		if (CanDelete)
+		{
+			Toolbaritems.Add(new ItemModel() { Text = "Delete", TooltipText = "Delete Product", PrefixIcon = "" });
+		}
+
+		Toolbaritems.Add(new ItemModel() { Text = "View", TooltipText = "View Product", PrefixIcon = "" });
+		Toolbaritems.Add(new ItemModel() { Text = "Edit", TooltipText = "Edit Product", PrefixIcon = "" });
+		Toolbaritems.Add(new ItemModel() { Text = "PDF", TooltipText = "Export to PDF", PrefixIcon = "" });
+		Toolbaritems.Add(new ItemModel() { Text = "EXCEL", TooltipText = "Export to Excel", PrefixIcon = "" });
+		Toolbaritems.Add(new ItemModel() { Text = "Print", TooltipText = "Print", PrefixIcon = "e-print" });
+	}
+
+	void OpenModal() => IsOpen = true;
+
+	void CreateProductBtnClicked()
+	{
+		ModalTitle = "New Product";
+		ResetModalDisplay();
+		ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
+		ShowProductPage = true;
+		ProductModel = new();
+		OpenModal();
+	}
+
+	void CloseModal() => IsOpen = false;
+
+	private Guid IdHolder { get; set; } = Guid.Empty;
+
+	async Task SaveProduct()
+	{
+		Loading = true;
+		await Task.Delay(3000);
+		ServiceResponse response = new(false, null);
+		if(IdHolder != Guid.Empty)
+		{
+			var update = ProductModel.Adapt(new UpdateProductRequestDTO());
+			update.Id = IdHolder;
+			using var scope = serviceProvider.CreateScope();
+			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+			response = await mediator.Send(new UpdateProductCommand(update));
+			await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+			{
+				UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
+				Title = "Update Product method called",
+				Description = response.Message,
+				OperationState = response.Flag,
+				Date = DateTime.Now.Date
+			});
+			Loading = false;
+			StateHasChanged();
+		}
+		else
+		{
+			using var scope = serviceProvider.CreateScope();
+			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+			response = await mediator.Send(new CreateProductCommand(ProductModel));
+			await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+			{
+				UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
+				Title = "Crate Product method called",
+				Description = response.Message,
+				OperationState = response.Flag,
+				Date = DateTime.Now.Date
+			});
+			Loading = false;
+			StateHasChanged();
+		}
+
+		if (response.Flag)
+		{
+			CloseModal();
+			await GetProducts();
+			PermanentProducts = Products;
+			await ToastComponent!.ShowSuccessToast("Info", response.Message);
+			ProductModel = new();
+			SelectedProduct = new();
+		}
+		else
+		{
+			await ToastComponent!.ShowErrorToast("Alert", response.Message);
+		}
+	}
+
+	void RetrieveContent(FileModel? incomingFiles)
+	{
+		if (incomingFiles is null) return;
+		foreach(var file in incomingFiles!.IBrowserFiles!)
+		{
+			var getFailName = incomingFiles.BaseFiles!.FirstOrDefault(f => f.Key.Equals(file.Name));
+			if (getFailName.Key != null)
+				ProductModel.Base64Image = getFailName.Value;
+		}
+	}
+
+	void CategorySelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => ProductModel.CategoryId = SelectedProduct.CategoryId;
+	void LocationSelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => ProductModel.LocationId = SelectedProduct.LocationId;
+
+	async Task ToolbarClickHandler(ClickEventArgs args)
+	{
+		if (args.Item.Text.ToLower() == "excel")
+			await this.DefaultGrid!.ExportToExcelAsync();
+
+		else if(args.Item.Text.ToLower() == "pdf")
+			await this.DefaultGrid!.ExportToPdfAsync();
+
+		else if(args.Item.Text.ToLower() == "print")
+			await this.DefaultGrid!.PrintAsync();
+
+		else if(args.Item.Text.ToLower() == "view")
+		{
+			bool check = await CheckIfRowSelected();
+			if (check)
+				NavManager.NavigateTo($"app/products/details/{SelectedProduct.Id.ToString()}");
+		}
+		else if(args.Item.Text.ToLower() == "add")
+		{
+			ProductModel = new();
+			OpenModal();
+		}
+		else if(args.Item.Text.ToLower() == "edit")
+		{
+			bool check = await CheckIfRowSelected();
+			if (check)
+			{
+				ResetModalDisplay();				
+				ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
+				ModalTitle = "Update product";
+				SelectedProduct.Adapt(ProductModel);
+				IdHolder = SelectedProduct.Id;
+				ShowProductPage = true;				
+				OpenModal();
+			}
+		}
+		else if(args.Item.Text.ToLower() == "delete")
+		{
+			if (await CheckIfRowSelected())
+			{
+				ResetModalDisplay();				
+				ModalCustomStyle = "position:relative; left:40vw; top:45vh; ";
+				ShowConfirmationPage = true;							
+				OpenModal();
+			}
+		}
+	}
+
+	async Task ConfirmDelete()
+	{
+		Loading = true;
+		await Task.Delay(3000);
+		using var scope = serviceProvider.CreateScope();
+		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+		var	result = await mediator.Send(new DeleteProductCommand(SelectedProduct.Id));
+		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+			{
+				UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
+				Title = "Delete Product method called",
+				Description = result.Message,
+				OperationState = result.Flag,
+				Date = DateTime.Now.Date
+			});
+		if (result.Flag)
+		{
+			await GetProducts();
+			PermanentProducts = Products;
+			await ToastComponent!.ShowSuccessToast("Info", result.Message);
+			SelectedProduct = new();
+			CloseModal();
+		}
+		else
+		{
+			await ToastComponent!.ShowErrorToast("Alert", result.Message);
+		}
+		Loading = false;			
+	}
+
+	async Task<bool> CheckIfRowSelected()
+	{
+		if(SelectedProduct.Id == Guid.Empty)
+		{
+			Duration = 2000;
+			await ToastComponent!.ShowErrorToast("Alert", "Строка не выбрана");
+			return false;
+		}
+		return true;
+	}
+
+	public void RowSelectHandler(RowSelectEventArgs<GetProductResponseDTO> args) => SelectedProduct = args.Row;
+
+	void SearchProduct(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+	{
+		try{
+
+		}
+		catch
+		{
+			
+		}
+	}
 }

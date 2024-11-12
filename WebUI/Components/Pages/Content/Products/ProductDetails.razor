@@ -1,5 +1,65 @@
-﻿<h3>ProductDetails</h3>
+﻿@page "/app/products/details/{Id}"
+@attribute [Authorize(Policy = "AdministrationPolicy")]
+
+<PageTitle>Детальная информация</PageTitle>
+<ThreeSectionsTemplate>
+	<Col9Template>
+		<AdminHomeHeader/>
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick="true" BackgroundColor="@BreadCrumbBackgroundColor.Secondary()" />
+		@if(Product.Id!= Guid.Empty)
+		{
+			<div class="row mt-3">
+				<div class="card border-1 shadow-lg">
+					<div class="card-header bg-white d-flex justify-content-between">
+						<i class="d-flex fs-4 mdi mdi-eye text-info float-start"></i>
+						<span class="d-flex bi-text-center text-info fs-4" style="font-family:Georgia; letter-spacing:inherit"></span>
+						<i class="d-flex mdi mdi-close text-danger fs-4 cursorStyle float-end" @onclick="Click"></i>
+					</div>
+					<div class="card-body">
+						<div class="col-xl-12 col-md-6 stretch-card grid-margin-sm-0 pb-sm-3">
+							<div class="card">
+								<div class="card-body px-3 py-4">
+									<div class="d-flex justify-content-between align-items-start">
+										<div class="color-card">
+											<p class="mb-0 color-card-head text-dark">Наименование Продукта</p>
+											<h2 class="text-muted fs-6">
+												@Product.Name
+											</h2>
+										</div>
+										<i class="card-icon-indicator mdi mdi-chat-timeline bg-inverse-icon"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</Col9Template>
+</ThreeSectionsTemplate>
 
 @code {
+	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
+	{
+		{"Home","app/home"},
+		{"Products", "app/products/manage"},
+		{"Product Details", null!}
+	};
+	[Parameter] public string Id { get; set; } = string.Empty;
+	private GetProductResponseDTO Product { get; set; } = new();
 
+	protected async override Task OnInitializedAsync()
+	{
+		homeGenericState.StateChanged += StateButtonClicked;
+		if (Guid.Parse(Id) == Guid.Empty)
+		{
+			GoToHome();
+		}
+		else
+		{
+			using var scope = serviceProvider.CreateScope();
+			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+			Product = await mediator.Send(new GetProductByIdQuery(Guid.Parse(Id)));
+		}
+	}
 }

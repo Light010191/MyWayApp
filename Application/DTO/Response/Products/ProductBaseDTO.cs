@@ -26,8 +26,9 @@ namespace Application.DTO.Response.Products
 		[RegularExpression(@"^\d+(\.\d{1,2})?$")]
 				
 		public decimal Price { get; set; }
+        public int Quantity { get; set; }
 
-		[Required]
+        [Required]
 		[MinLength(10)]
 		[MaxLength(5000)]
 		public string Description { get; set; }

@@ -41,7 +41,7 @@
 	</FooterTemplate>
 </ThreeSectionsTemplate>
 @code {
-	private Dictionary<string, string> BreadCumbs = new Dictionary<string, string>
+	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
 	{
 		{"Home", "app/home"},
 		{"Activity Logs", null! }
@@ -49,7 +49,7 @@
 	private HubConnection? hubConnection;
 	private IEnumerable<IGrouping<DateTime, ActivityTrackerResponseDTO>> Activities = [];
 	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
-	private async Task GetActivities() => Activities = await accountService.GroupActivitiesByDateAsync();
+	private async Task GetActivities() => Activities = await accountService.GroupActivitiesAsync();//GroupActivitiesByDateAsync();
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -75,5 +75,14 @@
 			StateHasChanged();
 			await adminActiveOrderCountState.GetActiveOrdersCount();
 		});
+	}
+	/// <summary>
+	/// /////////
+	/// </summary>
+	void StateButtonClicked()
+	{
+		string adminOrderUrl = "app/adminisration/products/orders";
+		if (homeGenericState.IsAdmin)
+			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
 	}
 }

@@ -6,7 +6,7 @@
 <ThreeSectionsTemplate>
 	<Col9Template>
 		<AdminHomeHeader/>
-		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick=true BackgroundColor="@BreadCrumbBackgroundColor"></NetcodeHubBreadCrumb>
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick=true BackgroundColor="@BreadCrumbBackgroundColor.Dark()"></NetcodeHubBreadCrumb>
 		<div class="card col-xl-10 col-lg-12 bg-light shadow-lg border-0 mt-3" style="border-radius: 5px">
 			<div class="card-body bg-light">
 				<EditForm Model="UserModel" OnValidSubmit="RegisterAsync">
@@ -34,7 +34,7 @@
 							<div class="form-group align-content-end">
 								@if (Loading)
 								{
-									< ButtonClass="btn btn-success mt-4 w-50 float-end" Text="Создание...."/>
+									<GenericSpinnerButton ButtonClass="btn btn-success mt-4 w-50 float-end" Text="Создание...."/>
 								}
 								else{
 									<button class="btn btn-success mt-4 w-50" type="submit">Создать Пользователя</button>
@@ -58,7 +58,7 @@
 <NetcodeHubToast @ref="ToastComponent" Duration="4000"/>
 
 @code {
-	private Dictionary<string, string> BreadCumbs = new Dictionary<string, string>
+	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
 	{
 		{"Home", "app/home"},
 		{"Add New User", null! }
@@ -83,9 +83,9 @@
 		var responce = await accountService.CreateUserAsync(UserModel);
 		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
 		{
-			UserId = (await UserAuthState!).User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name),
+			UserId = (await UserAuthState!).User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name)!.Value,
 			Title = "Create New User method called",
-			Discription = responce.Message,
+			Description = responce.Message,
 			OperationState = responce.Flag,
 			Date = DateTime.Now.Date
 		});
