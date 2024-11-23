@@ -11,7 +11,7 @@ namespace WebUI.Hubs
 		public ConnectionService(NavigationManager navigationManager)
 		{
 			_connection = new HubConnectionBuilder()
-				.WithUrl(navigationManager.ToAbsoluteUri("/communicationhub"))
+				.WithUrl(navigationManager.ToAbsoluteUri("/localhost"))
 				.Build();
 			_connection.StartAsync();
 		}

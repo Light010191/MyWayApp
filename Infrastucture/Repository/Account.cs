@@ -39,6 +39,7 @@ namespace Infrastucture.Repository
 				Name = model.Name
 			};
 			var result = CheckResult(await userManager.CreateAsync(newUser, model.Password));
+			await context.SaveChangesAsync();
 			if (!result.Flag)
 				return result;
 			else
@@ -55,6 +56,7 @@ namespace Infrastucture.Repository
 				[
 						new Claim(ClaimTypes.Email, model.Email),
 						new Claim(ClaimTypes.Role, "Admin"),
+						//new Claim("RoleName", "Admin"),
 						new Claim("Name", model.Name),
 						new Claim("Create","true"),
 						new Claim("Update","true"),
@@ -69,6 +71,7 @@ namespace Infrastucture.Repository
 				[
 						new Claim(ClaimTypes.Email, model.Email),
 						new Claim(ClaimTypes.Role, "Manager"),
+						//new Claim("RoleName","Manager"),
 						new Claim("Name", model.Name),
 						new Claim("Create","true"),
 						new Claim("Update","true"),
@@ -83,6 +86,7 @@ namespace Infrastucture.Repository
 				[
 						new Claim(ClaimTypes.Email, model.Email),
 						new Claim(ClaimTypes.Role, "User"),
+						//new Claim("RoleName","User"),
 						new Claim("Name", model.Name),
 						new Claim("Create","false"),
 						new Claim("Update","false"),
@@ -144,7 +148,7 @@ namespace Infrastucture.Repository
 						Email = getCurrentUserClaims.FirstOrDefault(c => c.Type == ClaimTypes.Email).Value,
 						RoleName = getCurrentUserClaims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value,
 						Name = getCurrentUserClaims.FirstOrDefault(c => c.Type == "Name").Value,
-						ManageUser = Convert.ToBoolean(getCurrentUserClaims.FirstOrDefault(c => c.Type == "ManagerUser").Value),
+						ManageUser = Convert.ToBoolean(getCurrentUserClaims.FirstOrDefault(c => c.Type == "ManageUser").Value),
 						Create = Convert.ToBoolean(getCurrentUserClaims.FirstOrDefault(c => c.Type == "Create").Value),
 						Update = Convert.ToBoolean(getCurrentUserClaims.FirstOrDefault(c => c.Type == "Update").Value),
 						Delete = Convert.ToBoolean(getCurrentUserClaims.FirstOrDefault(c => c.Type == "Delete").Value),

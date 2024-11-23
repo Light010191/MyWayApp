@@ -3,8 +3,8 @@
 	public class ChangePasswordState
 	{
 		public string? PasswordType = "password";
-		public bool PasswordState = true;
-		public string DisplayText = "Show";
+		public bool PasswordState = false;
+		public string DisplayText = "Показать";
 		public Action? Changed;
 
 		public void ChangePasswordType()
@@ -13,12 +13,12 @@
 			if (!PasswordState)
 			{
 				PasswordType = "text";
-				DisplayText = "Hide";
+				DisplayText = "Скрыть";				
 			}
 			else
 			{
 				PasswordType = "password";
-				DisplayText = "Show";
+				DisplayText = "Показать";				
 			}
 			Changed?.Invoke();
 		}

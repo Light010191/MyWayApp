@@ -1,35 +1,35 @@
 ﻿@page "/administration/account/create-user"
 @rendermode InteractiveServer
 @implements IDisposable
-<PageTitle>Add User</PageTitle>
+<PageTitle>Добавить Пользователя</PageTitle>
 
 <ThreeSectionsTemplate>
 	<Col9Template>
 		<AdminHomeHeader/>
-		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick=true BackgroundColor="@BreadCrumbBackgroundColor.Dark()"></NetcodeHubBreadCrumb>
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick=true BackgroundColor="@BreadCrumbBackgroundColor.Info()"></NetcodeHubBreadCrumb>
 		<div class="card col-xl-10 col-lg-12 bg-light shadow-lg border-0 mt-3" style="border-radius: 5px">
 			<div class="card-body bg-light">
 				<EditForm Model="UserModel" OnValidSubmit="RegisterAsync">
-					<div class="card border-success bg-light shadow-lg text-dark" style="opacity:" >
+					<div class="card border-success bg-light shadow-lg text-dark" style="opacity:1" >
 						<div class="card-header text-dark fs-4 border-primary text-center">
-							<i class="mdi mdi-account-plus menu-icon float-start text-success"></i>
+							<i class="mdi mdi-autorenew menu-icon float-start text-success"></i>
 							<span style="font-family:Algerian; letter-spacing:2px" class="fw-bold"></span>
-							<button type="reset" class="btn-outline-danger btn-sm float-end">Reset</button>
+							<button type="reset" class="btn-outline-danger btn-sm float-end">Сбросить</button>
 						</div>
 						<div class="card-body p-3" style="opacity:1">
 							<DataAnnotationsValidator />
-							<FloatingText class="form-control mb-3" Label="FullName" Placeholder="Enter Name"></FloatingText>
-							<FloatingText class="form-control mb-3" Label="Email Address" Placeholder="Enter Email"></FloatingText>
+							<FloatingText class="form-control mb-3" Label="FullName" Placeholder="Введите Имя" Type="text" @bind-Value="UserModel.Name"></FloatingText>
+							<FloatingText class="form-control mb-3" Label="Email Address" Placeholder="Введите Email" Type="text" @bind-Value="UserModel.Email"></FloatingText>
 							
 							<InputSelect @bind-Value="UserModel.Policy" class="form-select mb-3">
-								<option>Select Policy</option>
+								<option>Выберите Роль</option>
 								@foreach(var policy in Policies!)
 								{
 									<option value="@policy">@policy</option>
 								}
 							</InputSelect>
-							<FloatingText class="form-control mb-3" Label="User Password" Type="@passwordState.PasswordType" @bind-Value="UserModel.Password" />
-							<FloatingText class="form-control mb-3" Label="Confirm Password" Type="@passwordState.PasswordType" @bind-Value="UserModel.ConfirmPassword" />
+							<FloatingText class="form-control mb-3" Label="Пароль" Type="@passwordState.PasswordType" @bind-Value="UserModel.Password" />
+							<FloatingText class="form-control mb-3" Label="Подтвердите пароль" Type="@passwordState.PasswordType" @bind-Value="UserModel.ConfirmPassword" />
 							<a class="btn btn-link text-decoration-none float-end" style="margin-top:-20px" @onclick="ChangePasswordType"><small>@passwordState.DisplayText</small></a>
 							<div class="form-group align-content-end">
 								@if (Loading)
@@ -37,6 +37,8 @@
 									<GenericSpinnerButton ButtonClass="btn btn-success mt-4 w-50 float-end" Text="Создание...."/>
 								}
 								else{
+									<i class="mdi mdi-account-plus menu-icon float-start text-success"></i>
+									<span style="font-family:Algerian; letter-spacing:2px" class="fw-bold"></span>
 									<button class="btn btn-success mt-4 w-50" type="submit">Создать Пользователя</button>
 								}
 							</div>
@@ -59,54 +61,30 @@
 
 @code {
 	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
-	{
-		{"Home", "app/home"},
-		{"Add New User", null! }
+	{	
+		{"Home", "app/home"}, 
+		{"Add New User", null! }	
 	}; 
 	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
-	private CreateUserRequestDTO UserModel { get; set; } = null;
+	private CreateUserRequestDTO UserModel { get; set; } = new();	
 	NetcodeHubToast? ToastComponent;
 	private bool Loading = false;
+	private HubConnection? hubConnection;
 	List<string> Policies = new List<string>()
 	{
 		new string(Policy.AdminPolicy),
 		new string(Policy.ManagerPolicy),
 		new string(Policy.UserPolicy)
 	};
+	
 
-	private HubConnection? hubConnection;
-
-	private async Task RegisterAsync()
-	{
-		Loading = true;
-		await Task.Delay(3000);
-		var responce = await accountService.CreateUserAsync(UserModel);
-		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
-		{
-			UserId = (await UserAuthState!).User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name)!.Value,
-			Title = "Create New User method called",
-			Description = responce.Message,
-			OperationState = responce.Flag,
-			Date = DateTime.Now.Date
-		});
-		if (responce.Flag)
-		{
-			await ToastComponent!.ShowSuccessToast("Info", responce.Message);
-			UserModel = new();
-		}
-		else
-		{
-			await ToastComponent!.ShowErrorToast("Alert", responce.Message);
-		}
-		Loading = false;		
-	}
 
 	protected async override Task OnInitializedAsync()
 	{
 		if (!customAuthorizationService.CustomClaimChecker((await UserAuthState!).User, Application.Extension.Identity.DefaultClaims.ManageUser))
 			NavManager.NavigateTo("Account/Access-Denied");
 
-		passwordState.Changed+= StateHasChanged;
+		passwordState.Changed += StateHasChanged;
 		homeGenericState.StateChanged += StateButtonClicked;
 		hubConnection = connectionService.GetHubConnection();
 		hubConnection.On<string>("Notify", async (clientId) =>
@@ -125,6 +103,33 @@
 			await adminActiveOrderCountState.GetActiveOrdersCount();
 		});
 	}
+
+	private async Task RegisterAsync()
+	{
+		Loading = true;
+		await Task.Delay(3000);	
+		var response = await accountService.CreateUserAsync(UserModel);
+		
+		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+			{
+				UserId = (await UserAuthState!).User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value,
+				Title = "Создание нового пользователя",
+				Description = response.Message,
+				OperationState = response.Flag,
+				Date = DateTime.Now.Date
+			});
+		if (response.Flag)
+		{
+			await ToastComponent!.ShowSuccessToast("Info", response.Message);
+			UserModel = new();
+		}
+		else
+		{
+			await ToastComponent!.ShowErrorToast("Alert", response.Message);
+		}
+		Loading = false;
+	}
+	
 
 	void StateButtonClicked()
 	{

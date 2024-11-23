@@ -1,35 +1,35 @@
 ﻿@using Application.Extension.Identity
 
-<AutorizeView>
+<AuthorizeView>
 	<li class="nav-item mt-5">
-		<a class="nav-link" href="javascript:nv('app/home')">
+		<a class="nav-link" href="app/home">
 			<i class="mdi mdi-home menu-icon"></i>
-			<span class="menu-title">Home</span>
+			<span class="menu-title">Домашняя страница</span>
 		</a>
 	</li>
-</AutorizeView>
-<AutorizeView Policy="AdministrationPolicy">
+</AuthorizeView>
+<AuthorizeView Policy="AdministrationPolicy">
 
 	@if (CanManageUser)
 	{
 		<li class="nav-item">
-			<a class="nav-link" data-toggle="collapse" href="#expand-user" aria-expanded="false" aria-controls="ui-">
-				<i class="modal-dialog mdi-account-settings menu-icon fs-4"></i>
-				<span class="menu-title">User Management</span>
+			<a class="nav-link" data-toggle="collapse" href="#expand-user" aria-expanded="false" aria-controls="expand-user">
+				<i class="mdi mdi-account-settings menu-icon fs-4"></i>
+				<span class="menu-title">Администрирование</span>
 				<i class="menu-arrow"></i>
 			</a>
 			<div class="collapse" id="expand-user">
 				<ul class="nav flex-column sub-menu">
 					<li class="nav-item">
-						<a class="nav-link" href="javascript:nv('administration/account/create-user')">Add user</a>
+						<a class="nav-link" href="administration/account/create-user">Новый пользователь</a>
 					</li>
 
 					<li class="nav-item">
-						<a class="nav-link" href="javascript:nv('administration/account/users/manage')">Manager</a>
+						<a class="nav-link" href="administration/account/users/manage">Пользователи</a>
 					</li>
 
 					<li class="nav-item">
-						<a class="nav-link" href="javascript:nv('administration/account/user-management-account')">User Manager</a>
+						<a class="nav-link" href="administration/account/user-management-activity-log">Журнал активности</a>
 					</li>
 				</ul>
 			</div>
@@ -37,19 +37,19 @@
 	}
 
 	<li class="nav-item">
-		<a class="nav-link" data-toggle="collapse" href="#expand-product" aria-expanded="false" aria-controls="ui-">
+		<a class="nav-link" data-toggle="collapse" href="#expand-product" aria-expanded="false" aria-controls="expand-product">
 			<i class="mdi mdi-cube menu-icon fs-4"></i>
-			<span class="menu-title">Product Management</span>
+			<span class="menu-title">Управление товарами</span>
 			<i class="menu-arrow"></i>
 		</a>
 		<div class="collapse" id="expand-product">
 			<ul class="nav flex-column sub-menu">
 				<li class="nav-item">
-					<a class="nav-link" href="javascript:nv('app/products/manage',1500)">Product</a>
+					<a class="nav-link" href="javascript:nv('app/products/manage',1500)">Товары</a>
 				</li>
 
 				<li class="nav-item">
-					<a class="nav-link" href="javascript:nv('app/products/category/manage',700)">Categories</a>
+					<a class="nav-link" href="javascript:nv('app/products/category/manage',700)">Категории</a>
 				</li>
 
 				<li class="nav-item">
@@ -58,24 +58,24 @@
 			</ul>
 		</div>
 	</li>
-	@*Admin Orsers*@
+	@*Admin Orders*@
 	<li class="nav-item">
 		<a class="nav-link" href="javascript:nv('app/administration/products/orders',2000)">
 			<i class="mdi mdi-cube-unfolded menu-icon"></i>
-			<span class="menu-title">Orders</span>			
+			<span class="menu-title">Заказы</span>			
 		</a>
 	</li>
-</AutorizeView>
-<AutorizeView Policy="@Policy.UserPolicy">
-	@*Client Orsers*@
+</AuthorizeView>
+<AuthorizeView Policy="@Policy.UserPolicy">
+	@*Client Orders*@
 	<li class="nav-item">
 		<a class="nav-link" href="javascript:nv('app/products/orders',2000)">
 			<i class="mdi mdi-cube-unfolded menu-icon"></i>
 			<span class="menu-title">My Orders</span>
 		</a>
 	</li>
-</AutorizeView>
-<AutorizeView>
+</AuthorizeView>
+<AuthorizeView>
 	<MudBlazor.MudDivider Class="mt-5"/>
 	<li class="nav-item sidebar-actions">
 		<div class="nav-link">
@@ -91,7 +91,7 @@
 			</div>
 		</div>
 	</li>
-</AutorizeView>
+</AuthorizeView>
 
 @code {
 	[CascadingParameter] public Task<AuthenticationState>? myState { get; set; }

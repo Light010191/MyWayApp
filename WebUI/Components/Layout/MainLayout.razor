@@ -1,13 +1,25 @@
-﻿@inherits LayoutComponentBase
+﻿@using MudBlazor
+@inherits LayoutComponentBase
+
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
 
 <BreezeMainLayoutTemplate>
 	<InnerTemplate>
 		<AuthorizeView>
 			<SidebarTemplate>
-				<SidebarBrandTemplate> <Brand/> </SidebarBrandTemplate>
-				<SidebarContentTemplate> <Content/> </SidebarContentTemplate>
+				<SidebarBrandTemplate> <Brand /> </SidebarBrandTemplate>
+				<SidebarContentTemplate> <Content /> </SidebarContentTemplate>
 			</SidebarTemplate>
 		</AuthorizeView>
+		
 		<NavbarTemplate Theme="@NavbarTheme.Dark()">
 			<BodyTemplate>
 				@Body

@@ -260,7 +260,7 @@
 	void CreateProductBtnClicked()
 	{
 		ModalTitle = "New Product";
-		ResetModalDisplay();
+		//ResetModalDisplay();
 		ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
 		ShowProductPage = true;
 		ProductModel = new();
@@ -367,7 +367,7 @@
 			bool check = await CheckIfRowSelected();
 			if (check)
 			{
-				ResetModalDisplay();				
+				//ResetModalDisplay();				
 				ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
 				ModalTitle = "Update product";
 				SelectedProduct.Adapt(ProductModel);
@@ -380,7 +380,7 @@
 		{
 			if (await CheckIfRowSelected())
 			{
-				ResetModalDisplay();				
+				//ResetModalDisplay();				
 				ModalCustomStyle = "position:relative; left:40vw; top:45vh; ";
 				ShowConfirmationPage = true;							
 				OpenModal();
@@ -429,7 +429,7 @@
 		return true;
 	}
 
-	public void RowSelectHandler(RowSelectEventArgs<GetProductResponseDTO> args) => SelectedProduct = args.Row;
+	public void RowSelectHandler(RowSelectEventArgs<GetProductResponseDTO> args) => SelectedProduct = args.Data;
 
 	void SearchProduct(Microsoft.AspNetCore.Components.ChangeEventArgs e)
 	{

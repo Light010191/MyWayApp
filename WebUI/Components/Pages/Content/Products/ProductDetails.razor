@@ -13,7 +13,7 @@
 					<div class="card-header bg-white d-flex justify-content-between">
 						<i class="d-flex fs-4 mdi mdi-eye text-info float-start"></i>
 						<span class="d-flex bi-text-center text-info fs-4" style="font-family:Georgia; letter-spacing:inherit"></span>
-						<i class="d-flex mdi mdi-close text-danger fs-4 cursorStyle float-end" @onclick="Click"></i>
+						<i class="d-flex mdi mdi-close text-danger fs-4 cursorStyle float-end"></i> @* @onclick="Click"></i> *@
 					</div>
 					<div class="card-body">
 						<div class="col-xl-12 col-md-6 stretch-card grid-margin-sm-0 pb-sm-3">
@@ -53,7 +53,7 @@
 		homeGenericState.StateChanged += StateButtonClicked;
 		if (Guid.Parse(Id) == Guid.Empty)
 		{
-			GoToHome();
+			//GoToHome();
 		}
 		else
 		{
@@ -62,4 +62,12 @@
 			Product = await mediator.Send(new GetProductByIdQuery(Guid.Parse(Id)));
 		}
 	}
+
+	void StateButtonClicked()
+	{
+		string adminOrderUrl = "app/administration/products/orders";
+		if (homeGenericState.IsAdmin)
+			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	}
+
 }

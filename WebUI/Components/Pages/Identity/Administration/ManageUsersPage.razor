@@ -16,8 +16,8 @@
 					<div class="col-auto mb-3">
 						<div class="card border-success shadow-lg">
 							<div class="card-body">
-								<MudTreeView T="string" Dense="true" Hover="true" Class="text-primary">
-									<MudTreeViewItem Icon="@Icons.Material.Filled.SupervisedUserCircle" Value="@user.Name" Class="text-primary">
+								<MudTreeView T="string" Dense="@Dense" Hover="true" Class="text-primary">
+									<MudTreeViewItem  Icon="@Icons.Material.Filled.SupervisedUserCircle" Value="@user.Name" Class="text-primary">
 										<MudTreeViewItem Icon="@Icons.Material.Filled.VerifiedUser" Value="@($"Роль: {user.RoleName}")" Class="text-success"/>
 										<MudTreeViewItem Icon="@Icons.Material.Filled.Email" Value="@($"Email: {user.Email}")" Class="text-dark" />
 										<MudTreeViewItem Icon="@Icons.Material.Filled.Create" Value="@($"Создание: {user.Create}")" Class="text-warning" />
@@ -174,7 +174,7 @@
 			</ContentContent>
 		</Modal>
 
-		<NetcodeHubToast Duration="2000" IconClass="mdi mdi-content-duplicate menu-icon fs-4" @ref="ToastComponent"></NetcodeHubToast>
+		<NetcodeHubToast  Duration="2000" IconClass="mdi mdi-content-duplicate menu-icon fs-4" @ref="ToastComponent"></NetcodeHubToast>
 	</Col12Template>
 	<FooterTemplate> <Footer /> </FooterTemplate>
 </TwoSectionsTemplate>
@@ -185,6 +185,7 @@
 		{"Home","app/home"},
 		{"Manage Users", null }
 	};
+	public bool Dense;
 	public bool IsOpen{ get; set; }
 	void OpenModal() => IsOpen = true;
 	ChangeUserClaimRequestDTO ChangeUserClaim = new();
@@ -197,7 +198,7 @@
 		new string(Policy.RoleClaim.Manager),
 		new string(Policy.RoleClaim.User)
 	};
-	private IEnumerable<GetUserWithClaimResponseDTO> Users =[];
+	private IEnumerable<GetUserWithClaimResponseDTO> Users;
 	private bool Loading = false;
 
 	protected async override Task OnInitializedAsync()
@@ -260,6 +261,18 @@
 			await ToastComponent!.ShowErrorToast("Error", result.Message);
 		}
 		Loading = false;
+	}
+
+	void StateButtonClicked()
+	{
+		string adminOrderUrl = "app/administration/products/orders";
+		if (homeGenericState.IsAdmin)
+			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	}
+
+	public async Task GetUsersWithClaims()
+	{
+		Users = await accountService.GetUserWithClaimsAsync();
 	}
 
 }

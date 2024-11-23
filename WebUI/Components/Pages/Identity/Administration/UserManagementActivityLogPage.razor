@@ -21,8 +21,8 @@
 										<MudTreeViewItem Icon="@Icons.Material.Filled.VerifiedUser" Value="@($"Operation Title: {item.Title}")">
 											<MudTreeViewItem Icon="@Icons.Material.Filled.EventNote" Value="@($"Operation Description : {item.Description}")" />
 											<MudDivider/>
-											<MudTreeViewItem Icon="@Icons.Material.Filled.SupervisorAccount" Value="@($"Executed By: {item.Title}")" />
-											<MudTreeViewItem Icon="@Icons.Material.Filled.MarkChatRead" Value="@($"Success State: {item.Title}")" />
+											<MudTreeViewItem Icon="@Icons.Material.Filled.SupervisorAccount" Value="@($"Executed By: {item.UserName}")" />
+											<MudTreeViewItem Icon="@Icons.Material.Filled.MarkChatRead" Value="@($"Success State: {item.OperationState}")" />
 										</MudTreeViewItem>										
 									}
 								</MudTreeViewItem>
@@ -56,7 +56,7 @@
 		if (!customAuthorizationService.CustomClaimChecker((await UserAuthState!).User, DefaultClaims.ManageUser))
 			NavManager.NavigateTo("Account/Access-Denied");
 
-		homeGenericState.StateChanged += StateButtonClicked;
+		//homeGenericState.StateChanged += StateButtonClicked;
 		await GetActivities();
 
 		hubConnection = connectionService.GetHubConnection();
@@ -76,13 +76,11 @@
 			await adminActiveOrderCountState.GetActiveOrdersCount();
 		});
 	}
-	/// <summary>
-	/// /////////
-	/// </summary>
-	void StateButtonClicked()
-	{
-		string adminOrderUrl = "app/adminisration/products/orders";
-		if (homeGenericState.IsAdmin)
-			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
-	}
+	
+	// void StateButtonClicked()
+	// {
+	// 	string adminOrderUrl = "app/adminisration/products/orders";
+	// 	if (homeGenericState.IsAdmin)
+	// 		NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	// }
 }
