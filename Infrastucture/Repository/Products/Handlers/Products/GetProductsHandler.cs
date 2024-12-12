@@ -1,4 +1,5 @@
 ﻿using Application.DTO.Response.Products;
+using Application.Service.Products.Queries.Products;
 using Infrastucture.DataAccess;
 using Infrastucture.Repository.Products.Handlers.Locations;
 using Mapster;
@@ -7,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastucture.Repository.Products.Handlers.Products
 {
-	public class GetProductsHandler(DataAccess.IDbContextFactory<AppDbContext> contextFactory) : IRequest<IEnumerable<GetProductResponseDTO>>
+	public class GetProductsHandler(DataAccess.IDbContextFactory<AppDbContext> contextFactory) : IRequestHandler<GetProductsQuery, IEnumerable<GetProductResponseDTO>>
 	{
-		public async Task<IEnumerable<GetProductResponseDTO>> Handle(GetAllLocationsHandler request, CancellationToken cancellationToken)
+		public async Task<IEnumerable<GetProductResponseDTO>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
 		{
 			using var dbContext = contextFactory.CreateDbContext();
 			var data = await dbContext.Products.AsNoTracking().Include(c => c.Category).Include(l => l.Location).ToListAsync(cancellationToken: cancellationToken);

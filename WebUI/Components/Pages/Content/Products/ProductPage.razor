@@ -1,9 +1,10 @@
-﻿@page "/app/products/manage"
+﻿@page "/app/product/manage"
 @using Application.Extension.Identity
 @using Syncfusion.Blazor.Navigations
+@rendermode InteractiveServer
 @attribute [Authorize(Policy = "AdministrationPolicy")]
 
-<PageTitle>Товары</PageTitle>
+@* <PageTitle>Товары</PageTitle>
 <TwoSectionsTemplate>
 	<Col12Template>
 		<AdminHomeHeader/>
@@ -44,7 +45,7 @@
 								<GridColumn HeaderText="Категория" AllowFiltering="false">
 									<Template>
 										@{
-											var product = (context as GetProductResponseDTO);
+											 product = (context as GetProductResponseDTO);
 											<p>@(product!.Category.Name)</p>
 										}
 									</Template>
@@ -52,7 +53,7 @@
 								<GridColumn HeaderText="Локация" AllowFiltering="false">
 									<Template>
 										@{
-											var product = (context as GetProductResponseDTO);
+											 product = (context as GetProductResponseDTO);
 											<p>@(product!.Location.Name)</p>
 										}
 									</Template>
@@ -97,7 +98,7 @@
 							</div>
 							<div class="form-group mt-3">
 								<NetcodeHubFileUpload @ref="FileUploadComponent" Notify="RetrieveContent" RequiredExtensions="RequiredEx" />
-							</div
+							</div>
 							<div class="form-group mt-0">
 								<label class="form-label">Выберите Категорию</label>
 								<select class="form-select mb-3" @onchange="CategorySelectionChanged"> 
@@ -105,10 +106,68 @@
 									{
 										@if(SelectedProduct.Id != Guid.Empty)
 										{
-											
+											<option value="@SelectedProduct.CategoryId">@SelectedProduct.Category.Name</option>
+										}
+										else
+										{
+											<option>Выберите категорию</option>
+										}
+										foreach(var category in Categories)
+										{
+											if (SelectedProduct.CategoryId != category.Id)
+											{
+												<option value="@category.Id">@category.Name</option>
+											}
 										}
 									}
 								</select>
+							</div>
+							<div class="form-group">
+								<label class="form-label">Выберите Локацию</label>
+								<select class="form-select mb-3" @onchange="LocationSelectionChanged">
+									@if (Locations != null)
+									{
+										@if (SelectedProduct.Id != Guid.Empty)
+										{
+											<option value="@SelectedProduct.LocationId">@SelectedProduct.Location.Name</option>
+										}
+										else
+										{
+											<option>Выберите локацию</option>
+										}
+										foreach (var location in Locations)
+										{
+											if (SelectedProduct.LocationId != location.Id)
+											{
+												<option value="@location.Id">@location.Name</option>
+											}
+										}
+									}
+								</select>
+							</div>
+							<div class="form-group mt-3">
+								@if (Loading)
+								{
+									<GenericSpinnerButton Text="Сохранение..." ButtonClass="btn btn-success" />
+								}
+								else
+								{
+									@if (ProductModel.Base64Image != null)
+									{
+										<img width="50" height="50" style="border-radius:100%" src="@ProductModel.Base64Image" />
+									}
+									<button type="submit" class="btn btn-primary float-end">Сохранить</button>
+								}
+							</div>
+							<div class="form-group mt-2">
+								@if(Errors != "")
+								{
+									@Errors
+								}
+								else
+								{
+									<ValidationSummary/>
+								}
 							</div>
 						</EditForm>
 					</div>
@@ -142,303 +201,304 @@
 	</Col12Template>
 	<FooterTemplate><Footer/></FooterTemplate>
 </TwoSectionsTemplate>
-<NetcodeHubToast @ref="ToastComponent"/>
+<NetcodeHubToast @ref="ToastComponent"/> *@
 
 @code {
-	string ModalTitle = "Новый продукт";
-	private SfGrid<GetProductResponseDTO>? DefaultGrid;
-	NetcodeHubToast? ToastComponent;
-	string ModalCustomStyle = string.Empty;
-	string Search = string.Empty;
-	List<string> RequiredEx = [".jpg", ".png"];
-	NetcodeHubFileUpload? FileUploadComponent;
-	string Errors = "";
-	private bool ShowProductPage;
-	private bool ShowConfirmationPage;
-	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
-	{
-		{"Home","app/home"},
-		{"Manage Products", null!}
-	};
-	private List<ItemModel> Toolbaritems = new List<ItemModel>();
+	// string ModalTitle = "Новый продукт";
+	// private SfGrid<GetProductResponseDTO>? DefaultGrid;
+	// NetcodeHubToast? ToastComponent;
+	// string ModalCustomStyle = string.Empty;
+	// string Search = string.Empty;
+	// List<string> RequiredEx = [".jpg", ".png"];
+	// NetcodeHubFileUpload? FileUploadComponent;
+	// string Errors = "";
+	// GetProductResponseDTO context;
+	// private bool ShowProductPage;
+	// private bool ShowConfirmationPage;
+	// private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
+	// {
+	// 	{"Home","app/home"},
+	// 	{"Manage Products", null!}
+	// };
+	// private List<ItemModel> Toolbaritems = new List<ItemModel>();
 
-	public bool Loading { get; set; } = false;
-	public int Duration { get; set; }
-	public bool IsOpen { get; set; }
-	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
-	private IEnumerable<GetProductResponseDTO> Products { get; set; } =[];
-	private IEnumerable<GetProductResponseDTO> PermanentProducts { get; set; } =[];
-	private IEnumerable<GetCategoryResponseDTO> Categories { get; set; } =[];
-	private IEnumerable<GetLocationResponseDTO> Locations { get; set; } =[];
-	private AddProductRequestDTO ProductModel { get; set; } = new();
-	private GetProductResponseDTO SelectedProduct = new();
-	ClaimsPrincipal? User;
-	private HubConnection? hubConnection;
-	bool CanDelete = false;
+	// public bool Loading { get; set; } = false;
+	// public int Duration { get; set; }
+	// public bool IsOpen { get; set; }
+	// [CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
+	// private IEnumerable<GetProductResponseDTO> Products { get; set; } =[];
+	// private IEnumerable<GetProductResponseDTO> PermanentProducts { get; set; } =[];
+	// private IEnumerable<GetCategoryResponseDTO> Categories { get; set; } =[];
+	// private IEnumerable<GetLocationResponseDTO> Locations { get; set; } =[];
+	// private AddProductRequestDTO ProductModel { get; set; } = new();
+	// private GetProductResponseDTO SelectedProduct = new();
+	// ClaimsPrincipal? User;
+	// private HubConnection? hubConnection;
+	// bool CanDelete = false;
 
-	protected async override Task OnInitializedAsync()
-	{
-		User = (await UserAuthState!).User;
-		CanDelete = customAuthorizationService.CustomClaimChecker(User, DefaultClaims.Delete);
-		homeGenericState.StateChanged += StateButtonClicked;
+	// protected async override Task OnInitializedAsync()
+	// {
+	// 	User = (await UserAuthState!).User;
+	// 	CanDelete = customAuthorizationService.CustomClaimChecker(User, DefaultClaims.Delete);
+	// 	homeGenericState.StateChanged += StateButtonClicked;
 
-		await GetDefaults();
-		LoadToolbarItems();
-		hubConnection = connectionService.GetHubConnection();
-		hubConnection.On<string>("Notyfi", async (ClientId) =>
-		{
-			await CallWhenNotified();
-		});
-		if (hubConnection == null)
-			await hubConnection!.StartAsync();
-	}
+	// 	await GetDefaults();
+	// 	LoadToolbarItems();
+	// 	hubConnection = connectionService.GetHubConnection();
+	// 	hubConnection.On<string>("Notify", async (clientId) =>
+	// 	{
+	// 		await CallWhenNotified();
+	// 	});
+	// 	if (hubConnection == null)
+	// 		await hubConnection!.StartAsync();
+	// }
 
-	async Task CallWhenNotified()
-	{
-		await InvokeAsync(async () =>
-		{
-			StateHasChanged();
-			await adminState.GetActiveOrdersCount();
-		});
-	}
+	// async Task CallWhenNotified()
+	// {
+	// 	await InvokeAsync(async () =>
+	// 	{
+	// 		StateHasChanged();
+	// 		await adminState.GetActiveOrdersCount();
+	// 	});
+	// }
 
-	void StateButtonClicked()
-	{
-		string adminOrderUrl = "app/administration/products/orders";
-		if(homeGenericState.IsAdmin)
-			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
-	}
+	// void StateButtonClicked()
+	// {
+	// 	string adminOrderUrl = "app/administration/products/orders";
+	// 	if(homeGenericState.IsAdmin)
+	// 		NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	// }
 
-	private async Task GetDefaults()
-	{
-		await GetProducts();
-		await GetCategories();
-		await GetLocations();
-	}
+	// private async Task GetDefaults()
+	// {
+	// 	await GetProducts();
+	// 	await GetCategories();
+	// 	await GetLocations();
+	// }
 
-	async Task GetCategories()
-	{
-		using var scope = serviceProvider.CreateScope();
-		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-		var result = await mediator.Send(new GetAllCategoriesQuery());
-		Categories = result;
-	}
+	// async Task GetCategories()
+	// {
+	// 	using var scope = serviceProvider.CreateScope();
+	// 	var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+	// 	var result = await mediator.Send(new GetAllCategoriesQuery());
+	// 	Categories = result;
+	// }
 
-	async Task GetLocations()
-	{
-		using var scope = serviceProvider.CreateScope();
-		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-		var result = await mediator.Send(new GetAllLocationsQuery());
-		Locations = result;
-	}
+	// async Task GetLocations()
+	// {
+	// 	using var scope = serviceProvider.CreateScope();
+	// 	var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+	// 	var result = await mediator.Send(new GetAllLocationsQuery());
+	// 	Locations = result;
+	// }
 
-	async Task GetProducts()
-	{
-		using var scope = serviceProvider.CreateScope();
-		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-		var result = await mediator.Send(new GetProductsQuery());
-		Products = result;
-		PermanentProducts = Products;
-	}
+	// async Task GetProducts()
+	// {
+	// 	using var scope = serviceProvider.CreateScope();
+	// 	var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+	// 	var result = await mediator.Send(new GetProductsQuery());		
+	// 	Products = result;
+	// 	PermanentProducts = Products;
+	// }
 
-	void LoadToolbarItems()
-	{
-		if (CanDelete)
-		{
-			Toolbaritems.Add(new ItemModel() { Text = "Delete", TooltipText = "Delete Product", PrefixIcon = "" });
-		}
+	// void LoadToolbarItems()
+	// {
+	// 	if (CanDelete)
+	// 	{
+	// 		Toolbaritems.Add(new ItemModel() { Text = "Delete", TooltipText = "Delete Product", PrefixIcon = "e-delete-3" });
+	// 	}
 
-		Toolbaritems.Add(new ItemModel() { Text = "View", TooltipText = "View Product", PrefixIcon = "" });
-		Toolbaritems.Add(new ItemModel() { Text = "Edit", TooltipText = "Edit Product", PrefixIcon = "" });
-		Toolbaritems.Add(new ItemModel() { Text = "PDF", TooltipText = "Export to PDF", PrefixIcon = "" });
-		Toolbaritems.Add(new ItemModel() { Text = "EXCEL", TooltipText = "Export to Excel", PrefixIcon = "" });
-		Toolbaritems.Add(new ItemModel() { Text = "Print", TooltipText = "Print", PrefixIcon = "e-print" });
-	}
+	// 	Toolbaritems.Add(new ItemModel() { Text = "View", TooltipText = "View Product", PrefixIcon = "e-eye" });
+	// 	Toolbaritems.Add(new ItemModel() { Text = "Edit", TooltipText = "Edit Product", PrefixIcon = "e-edit-notes" });
+	// 	Toolbaritems.Add(new ItemModel() { Text = "PDF", TooltipText = "Export to PDF", PrefixIcon = "e-export-pdf" });
+	// 	Toolbaritems.Add(new ItemModel() { Text = "EXCEL", TooltipText = "Export to Excel", PrefixIcon = "e-export-excel" });
+	// 	Toolbaritems.Add(new ItemModel() { Text = "Print", TooltipText = "Print", PrefixIcon = "e-print" });
+	// }
 
-	void OpenModal() => IsOpen = true;
+	// void OpenModal() => IsOpen = true;
 
-	void CreateProductBtnClicked()
-	{
-		ModalTitle = "New Product";
-		//ResetModalDisplay();
-		ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
-		ShowProductPage = true;
-		ProductModel = new();
-		OpenModal();
-	}
+	// void CreateProductBtnClicked()
+	// {
+	// 	ModalTitle = "New Product";
+	// 	//ResetModalDisplay();
+	// 	ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
+	// 	ShowProductPage = true;
+	// 	ProductModel = new();
+	// 	OpenModal();
+	// }
 
-	void CloseModal() => IsOpen = false;
+	// void CloseModal() => IsOpen = false;
 
-	private Guid IdHolder { get; set; } = Guid.Empty;
+	// private Guid IdHolder { get; set; } = Guid.Empty;
 
-	async Task SaveProduct()
-	{
-		Loading = true;
-		await Task.Delay(3000);
-		ServiceResponse response = new(false, null);
-		if(IdHolder != Guid.Empty)
-		{
-			var update = ProductModel.Adapt(new UpdateProductRequestDTO());
-			update.Id = IdHolder;
-			using var scope = serviceProvider.CreateScope();
-			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-			response = await mediator.Send(new UpdateProductCommand(update));
-			await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
-			{
-				UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
-				Title = "Update Product method called",
-				Description = response.Message,
-				OperationState = response.Flag,
-				Date = DateTime.Now.Date
-			});
-			Loading = false;
-			StateHasChanged();
-		}
-		else
-		{
-			using var scope = serviceProvider.CreateScope();
-			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-			response = await mediator.Send(new CreateProductCommand(ProductModel));
-			await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
-			{
-				UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
-				Title = "Crate Product method called",
-				Description = response.Message,
-				OperationState = response.Flag,
-				Date = DateTime.Now.Date
-			});
-			Loading = false;
-			StateHasChanged();
-		}
+	// async Task SaveProduct()
+	// {
+	// 	Loading = true;
+	// 	await Task.Delay(3000);
+	// 	ServiceResponse response = new(false, null);
+	// 	if(IdHolder != Guid.Empty)
+	// 	{
+	// 		var update = ProductModel.Adapt(new UpdateProductRequestDTO());
+	// 		update.Id = IdHolder;
+	// 		using var scope = serviceProvider.CreateScope();
+	// 		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+	// 		response = await mediator.Send(new UpdateProductCommand(update));
+	// 		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+	// 		{
+	// 			UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
+	// 			Title = "Update Product method called",
+	// 			Description = response.Message,
+	// 			OperationState = response.Flag,
+	// 			Date = DateTime.Now.Date
+	// 		});
+	// 		Loading = false;
+	// 		StateHasChanged();
+	// 	}
+	// 	else
+	// 	{
+	// 		using var scope = serviceProvider.CreateScope();
+	// 		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+	// 		response = await mediator.Send(new CreateProductCommand(ProductModel));
+	// 		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+	// 		{
+	// 			UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
+	// 			Title = "Create Product method called",
+	// 			Description = response.Message,
+	// 			OperationState = response.Flag,
+	// 			Date = DateTime.Now.Date
+	// 		});
+	// 		Loading = false;
+	// 		StateHasChanged();
+	// 	}
 
-		if (response.Flag)
-		{
-			CloseModal();
-			await GetProducts();
-			PermanentProducts = Products;
-			await ToastComponent!.ShowSuccessToast("Info", response.Message);
-			ProductModel = new();
-			SelectedProduct = new();
-		}
-		else
-		{
-			await ToastComponent!.ShowErrorToast("Alert", response.Message);
-		}
-	}
+	// 	if (response.Flag)
+	// 	{
+	// 		CloseModal();
+	// 		await GetProducts();
+	// 		PermanentProducts = Products;
+	// 		await ToastComponent!.ShowSuccessToast("Info", response.Message);
+	// 		ProductModel = new();
+	// 		SelectedProduct = new();
+	// 	}
+	// 	else
+	// 	{
+	// 		await ToastComponent!.ShowErrorToast("Alert", response.Message);
+	// 	}
+	// }
 
-	void RetrieveContent(FileModel? incomingFiles)
-	{
-		if (incomingFiles is null) return;
-		foreach(var file in incomingFiles!.IBrowserFiles!)
-		{
-			var getFailName = incomingFiles.BaseFiles!.FirstOrDefault(f => f.Key.Equals(file.Name));
-			if (getFailName.Key != null)
-				ProductModel.Base64Image = getFailName.Value;
-		}
-	}
+	// void RetrieveContent(FileModel? incomingFiles)
+	// {
+	// 	if (incomingFiles is null) return;
+	// 	foreach(var file in incomingFiles!.IBrowserFiles!)
+	// 	{
+	// 		var getFailName = incomingFiles.BaseFiles!.FirstOrDefault(f => f.Key.Equals(file.Name));
+	// 		if (getFailName.Key != null)
+	// 			ProductModel.Base64Image = getFailName.Value;
+	// 	}
+	// }
 
-	void CategorySelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => ProductModel.CategoryId = SelectedProduct.CategoryId;
-	void LocationSelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => ProductModel.LocationId = SelectedProduct.LocationId;
+	// void CategorySelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => ProductModel.CategoryId = SelectedProduct.CategoryId;
+	// void LocationSelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => ProductModel.LocationId = SelectedProduct.LocationId;
 
-	async Task ToolbarClickHandler(ClickEventArgs args)
-	{
-		if (args.Item.Text.ToLower() == "excel")
-			await this.DefaultGrid!.ExportToExcelAsync();
+	// async Task ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+	// {
+	// 	if (args.Item.Text.ToLower() == "excel")
+	// 		await this.DefaultGrid!.ExportToExcelAsync();
 
-		else if(args.Item.Text.ToLower() == "pdf")
-			await this.DefaultGrid!.ExportToPdfAsync();
+	// 	else if(args.Item.Text.ToLower() == "pdf")
+	// 		await this.DefaultGrid!.ExportToPdfAsync();
 
-		else if(args.Item.Text.ToLower() == "print")
-			await this.DefaultGrid!.PrintAsync();
+	// 	else if(args.Item.Text.ToLower() == "print")
+	// 		await this.DefaultGrid!.PrintAsync();
 
-		else if(args.Item.Text.ToLower() == "view")
-		{
-			bool check = await CheckIfRowSelected();
-			if (check)
-				NavManager.NavigateTo($"app/products/details/{SelectedProduct.Id.ToString()}");
-		}
-		else if(args.Item.Text.ToLower() == "add")
-		{
-			ProductModel = new();
-			OpenModal();
-		}
-		else if(args.Item.Text.ToLower() == "edit")
-		{
-			bool check = await CheckIfRowSelected();
-			if (check)
-			{
-				//ResetModalDisplay();				
-				ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
-				ModalTitle = "Update product";
-				SelectedProduct.Adapt(ProductModel);
-				IdHolder = SelectedProduct.Id;
-				ShowProductPage = true;				
-				OpenModal();
-			}
-		}
-		else if(args.Item.Text.ToLower() == "delete")
-		{
-			if (await CheckIfRowSelected())
-			{
-				//ResetModalDisplay();				
-				ModalCustomStyle = "position:relative; left:40vw; top:45vh; ";
-				ShowConfirmationPage = true;							
-				OpenModal();
-			}
-		}
-	}
+	// 	else if(args.Item.Text.ToLower() == "view")
+	// 	{
+	// 		bool check = await CheckIfRowSelected();
+	// 		if (check)
+	// 			NavManager.NavigateTo($"app/products/details/{SelectedProduct.Id.ToString()}");
+	// 	}
+	// 	else if(args.Item.Text.ToLower() == "add")
+	// 	{
+	// 		ProductModel = new();
+	// 		OpenModal();
+	// 	}
+	// 	else if(args.Item.Text.ToLower() == "edit")
+	// 	{
+	// 		bool check = await CheckIfRowSelected();
+	// 		if (check)
+	// 		{
+	// 			//ResetModalDisplay();				
+	// 			ModalCustomStyle = "position:relative; left:45vw; top:10vh; min-width:250px";
+	// 			ModalTitle = "Update product";
+	// 			SelectedProduct.Adapt(ProductModel);
+	// 			IdHolder = SelectedProduct.Id;
+	// 			ShowProductPage = true;				
+	// 			OpenModal();
+	// 		}
+	// 	}
+	// 	else if(args.Item.Text.ToLower() == "delete")
+	// 	{
+	// 		if (await CheckIfRowSelected())
+	// 		{
+	// 			//ResetModalDisplay();				
+	// 			ModalCustomStyle = "position:relative; left:40vw; top:45vh; ";
+	// 			ShowConfirmationPage = true;							
+	// 			OpenModal();
+	// 		}
+	// 	}
+	// }
 
-	async Task ConfirmDelete()
-	{
-		Loading = true;
-		await Task.Delay(3000);
-		using var scope = serviceProvider.CreateScope();
-		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-		var	result = await mediator.Send(new DeleteProductCommand(SelectedProduct.Id));
-		await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
-			{
-				UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
-				Title = "Delete Product method called",
-				Description = result.Message,
-				OperationState = result.Flag,
-				Date = DateTime.Now.Date
-			});
-		if (result.Flag)
-		{
-			await GetProducts();
-			PermanentProducts = Products;
-			await ToastComponent!.ShowSuccessToast("Info", result.Message);
-			SelectedProduct = new();
-			CloseModal();
-		}
-		else
-		{
-			await ToastComponent!.ShowErrorToast("Alert", result.Message);
-		}
-		Loading = false;			
-	}
+	// async Task ConfirmDelete()
+	// {
+	// 	Loading = true;
+	// 	await Task.Delay(3000);
+	// 	using var scope = serviceProvider.CreateScope();
+	// 	var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+	// 	var	result = await mediator.Send(new DeleteProductCommand(SelectedProduct.Id));
+	// 	await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+	// 		{
+	// 			UserId = User!.Claims.FirstOrDefault(c=>c.Type ==ClaimTypes.NameIdentifier)!.Value.ToString(),
+	// 			Title = "Удаление товара",
+	// 			Description = result.Message,
+	// 			OperationState = result.Flag,
+	// 			Date = DateTime.Now.Date
+	// 		});
+	// 	if (result.Flag)
+	// 	{
+	// 		await GetProducts();
+	// 		PermanentProducts = Products;
+	// 		await ToastComponent!.ShowSuccessToast("Info", result.Message);
+	// 		SelectedProduct = new();
+	// 		CloseModal();
+	// 	}
+	// 	else
+	// 	{
+	// 		await ToastComponent!.ShowErrorToast("Alert", result.Message);
+	// 	}
+	// 	Loading = false;			
+	// }
 
-	async Task<bool> CheckIfRowSelected()
-	{
-		if(SelectedProduct.Id == Guid.Empty)
-		{
-			Duration = 2000;
-			await ToastComponent!.ShowErrorToast("Alert", "Строка не выбрана");
-			return false;
-		}
-		return true;
-	}
+	// async Task<bool> CheckIfRowSelected()
+	// {
+	// 	if(SelectedProduct.Id == Guid.Empty)
+	// 	{
+	// 		Duration = 2000;
+	// 		await ToastComponent!.ShowErrorToast("Alert", "Строка не выбрана");
+	// 		return false;
+	// 	}
+	// 	return true;
+	// }
 
-	public void RowSelectHandler(RowSelectEventArgs<GetProductResponseDTO> args) => SelectedProduct = args.Data;
+	// public void RowSelectHandler(RowSelectEventArgs<GetProductResponseDTO> args) => SelectedProduct = args.Data;
 
-	void SearchProduct(Microsoft.AspNetCore.Components.ChangeEventArgs e)
-	{
-		try{
+	// void SearchProduct(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+	// {
+	// 	try{
 
-		}
-		catch
-		{
+	// 	}
+	// 	catch
+	// 	{
 			
-		}
-	}
+	// 	}
+	// }
 }

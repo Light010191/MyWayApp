@@ -15,14 +15,14 @@
 						foreach (var group in Activities)
 						{
 							<MudTreeView T="string" Dense=true Hover=true>
-								<MudTreeViewItem Icon="@Icons.Material.Filled.Event" Value="@group.Key">
+								<MudTreeViewItem Icon="@Icons.Material.Filled.Event" Value="@group.Key" Class="text-warning ">
 									@foreach(var item in group)
 									{
-										<MudTreeViewItem Icon="@Icons.Material.Filled.VerifiedUser" Value="@($"Operation Title: {item.Title}")">
-											<MudTreeViewItem Icon="@Icons.Material.Filled.EventNote" Value="@($"Operation Description : {item.Description}")" />
+										<MudTreeViewItem Icon="@Icons.Material.Filled.VerifiedUser" Value="@($"Operation Title: {item.Title}")" Class="text-success">
+											<MudTreeViewItem Icon="@Icons.Material.Filled.EventNote" Value="@($"Operation Description : {item.Description}")" Class="text-info" />
 											<MudDivider/>
-											<MudTreeViewItem Icon="@Icons.Material.Filled.SupervisorAccount" Value="@($"Executed By: {item.UserName}")" />
-											<MudTreeViewItem Icon="@Icons.Material.Filled.MarkChatRead" Value="@($"Success State: {item.OperationState}")" />
+											<MudTreeViewItem Icon="@Icons.Material.Filled.SupervisorAccount" Value="@($"Executed By: {item.UserName}")" Class="text-info" />
+											<MudTreeViewItem Icon="@Icons.Material.Filled.MarkChatRead" Value="@($"Success State: {item.OperationState}")" Class="text-info" />
 										</MudTreeViewItem>										
 									}
 								</MudTreeViewItem>
@@ -56,7 +56,7 @@
 		if (!customAuthorizationService.CustomClaimChecker((await UserAuthState!).User, DefaultClaims.ManageUser))
 			NavManager.NavigateTo("Account/Access-Denied");
 
-		//homeGenericState.StateChanged += StateButtonClicked;
+		homeGenericState.StateChanged += StateButtonClicked;
 		await GetActivities();
 
 		hubConnection = connectionService.GetHubConnection();
@@ -77,10 +77,10 @@
 		});
 	}
 	
-	// void StateButtonClicked()
-	// {
-	// 	string adminOrderUrl = "app/adminisration/products/orders";
-	// 	if (homeGenericState.IsAdmin)
-	// 		NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
-	// }
+	void StateButtonClicked()
+	{
+		string adminOrderUrl = "app/adminisration/products/orders";
+		if (homeGenericState.IsAdmin)
+			NavManager.NavigateTo($"{adminOrderUrl}/{homeGenericState.StateName}");
+	}
 }

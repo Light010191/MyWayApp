@@ -2,6 +2,7 @@
 using Application.DTO.Response.Orders;
 using Application.Service.Orders.Commands;
 using Application.Service.Orders.Queries;
+using Application.Service.Products.Commands.Categories;
 using Domain.Entities.Orders;
 using Infrastucture.DataAccess;
 using MediatR;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Infrastucture.Repository.Orders.Handlers
 {
-	public class UpdateClientOrderHandler(DataAccess.IDbContextFactory<AppDbContext> contextFactory) : IRequest<ServiceResponse>
+	public class UpdateClientOrderHandler(DataAccess.IDbContextFactory<AppDbContext> contextFactory) : IRequestHandler<UpdateClientOrderCommand, ServiceResponse>
 	{
 		public async Task<ServiceResponse> Handle(UpdateClientOrderCommand request, CancellationToken cancellationToken)
 		{

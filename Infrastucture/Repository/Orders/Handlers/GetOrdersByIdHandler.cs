@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Infrastucture.Repository.Orders.Handlers
 {
-	public class GetOrdersByIdHandler(DataAccess.IDbContextFactory<AppDbContext> contextFactory) : IRequest<GetOrderResponseDTO>
+	public class GetOrdersByIdHandler(DataAccess.IDbContextFactory<AppDbContext> contextFactory) : IRequestHandler<GetOrdersByIdQuery, IEnumerable<GetOrderResponseDTO>>
 	{
 		public async Task<IEnumerable<GetOrderResponseDTO>> Handle(GetOrdersByIdQuery request, CancellationToken cancellationToken)
 		{

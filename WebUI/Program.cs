@@ -1,8 +1,14 @@
 using Application.DependencyInjection;
 using Application.DTO.Response.Orders;
 using Application.Service.Orders.Queries;
+using Application.Service.Products.Queries.Categories;
+using Application.Service.Products.Queries.Locations;
+using Application.Service.Products.Queries.Products;
 using Infrastucture.DependencyInjection;
 using Infrastucture.Repository.Orders.Handlers;
+using Infrastucture.Repository.Products.Handlers.Categories;
+using Infrastucture.Repository.Products.Handlers.Locations;
+using Infrastucture.Repository.Products.Handlers.Products;
 using MediatR;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
@@ -31,7 +37,14 @@ builder.Services.AddScoped<ICustomAuthorizationService, CustomAuthorizationServi
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddVirtualizationService();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetGenericOrdersCountHandler).Assembly));
-Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NDaF1cX2hIfEx3QHxbf1x0ZFxMZF5bRX5PMyBoS35RckRiWHled3RSRGFYU0x0");
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllOrdersQuery).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetOrdersByIdQuery).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetOrdersByIdHandler).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllOrdersHandler).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsQuery).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllLocationsQuery).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllCategoriesQuery).Assembly)); 
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NDaF1cX2hIfEx3QHxbf1x0ZFxMZF5bRX5PMyBoS35RckRiW3pfdXZRRmlfUEd1");
 builder.Services.AddMudServices();
 builder.Services.AddSignalR();
 

@@ -34,8 +34,8 @@
 }
 
 function SelectedTd(itemId){
-	var td1 = = document.getElementById('td1_' + itemId);
-	var td2 = = document.getElementById('td2_' + itemId);
+	var td1 = document.getElementById('td1_' + itemId);
+	var td2 = document.getElementById('td2_' + itemId);
 }
 
 function ToggleEditIcon(itemId, isHovering){

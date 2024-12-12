@@ -55,8 +55,7 @@ namespace Infrastucture.Repository
 				userClaims =
 				[
 						new Claim(ClaimTypes.Email, model.Email),
-						new Claim(ClaimTypes.Role, "Admin"),
-						//new Claim("RoleName", "Admin"),
+						new Claim(ClaimTypes.Role, "Admin"),						
 						new Claim("Name", model.Name),
 						new Claim("Create","true"),
 						new Claim("Update","true"),
@@ -70,8 +69,7 @@ namespace Infrastucture.Repository
 				userClaims =
 				[
 						new Claim(ClaimTypes.Email, model.Email),
-						new Claim(ClaimTypes.Role, "Manager"),
-						//new Claim("RoleName","Manager"),
+						new Claim(ClaimTypes.Role, "Manager"),						
 						new Claim("Name", model.Name),
 						new Claim("Create","true"),
 						new Claim("Update","true"),
@@ -85,8 +83,7 @@ namespace Infrastucture.Repository
 				userClaims =
 				[
 						new Claim(ClaimTypes.Email, model.Email),
-						new Claim(ClaimTypes.Role, "User"),
-						//new Claim("RoleName","User"),
+						new Claim(ClaimTypes.Role, "User"),						
 						new Claim("Name", model.Name),
 						new Claim("Create","false"),
 						new Claim("Update","false"),

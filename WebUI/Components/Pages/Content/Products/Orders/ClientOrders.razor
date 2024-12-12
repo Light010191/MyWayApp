@@ -1,0 +1,276 @@
+﻿@page "/app/products/orders"
+@page "/app/products/orders/{OrderStateParam}"
+@using Application.Extension.Identity
+@using Application.Service.Orders.Commands
+@using Syncfusion.Blazor.Navigations
+@rendermode InteractiveServer
+@implements IDisposable
+
+<PageTitle>Заказы</PageTitle>
+<TwoSectionsTemplate>
+	<Col12Template>		
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" BackgroundColor="@BackgroundColor.Dark()"></NetcodeHubBreadCrumb>
+		<div class="row bg-success py-2 mt-3" style="border-radius:20px">
+			<div class="col-lg-12 col-sm-12 col-md-12">
+				<div class="card border-1 shadow-lg" style="border-radius:20px">
+					<div class="card-header text-center">
+						<i class="mdi mdi-sync fs-2 float-start text-success"></i>
+						<h4 class="text-success">Управление заказами</h4>
+					</div>
+					<div class="card-body border-1 border-success">
+						<NetcodeHubDataGrid ContentBGColor="@Color.Primary()" HeaderFont="@Font.TimesNewRoman()" HeaderSize="@Size.Large()"
+											ContentFont="@Font.Georgia()" DataGridFormat="@DataGridFormat.Striped()" HeaderBGColor="@Color.Danger()">
+							<HeaderTemplate>
+								<tr>
+									<th> № </th>
+									<th>Клиент</th>
+									<th>Товар</th>
+									<th>Цена</th>
+									<th>Количество</th>
+									<th>Итого</th>
+									<th>Статус</th>
+									<th><span id="manageHeader" style="display:none;">MANAGE</span></th>
+								</tr>
+							</HeaderTemplate>
+							<ContentTemplate>
+								@if (OrdersList == null)
+								{
+									<tr>
+										<td colspan="4" class="text-center mb-2">
+											<span>Данные не найдены</span>
+										</td>
+									</tr>
+								}
+								else
+								{
+									var listData = OrdersList.Skip(SkipValue).Take(TakeValue).ToList();
+									int sn = 1;
+									@foreach (var item in listData)
+									{
+										string id = item.Id.ToString();
+										<tr @onmouseover="()=>ToggleIcons(id, true)" @onmouseout="()=>ToggleIcons(id, false)" id="td_@item.Id">
+											<td>@sn</td>
+											<td id="td1_@item.Id">@item.ClientName</td>
+											<td id="td1_@item.Id">@item.ProductName</td>
+											<td id="td2_@item.Id">@item.Price</td>
+											<td id="td2_@item.Id">@item.Quantity</td>
+											<td id="td2_@item.Id">@item.TotalAmount</td>
+											<td id="td1_@item.Id">@item.State</td>
+											<td>
+												<i @onmouseover="()=>ToggleEditIcon(id, true)" @onmouseout="()=>ToggleEditIcon(id, false)" id="editIcon_@item.Id" @onclick="(()=>EditClicked(item))" class="mdi mdi-grease-pencil text-dark cursorStyle" style="display:none"></i>
+												<i id="separatorIcon_@item.Id" class="modal-dialog mdi mdi-dots-vertical text-primary" style="display:none;"></i>
+												<i @onmouseover="()=>ToggleDeleteIcon(id, true)" @onmouseout="()=>ToggleDeleteIcon(id, false)" @onclick="(()=>DeleteClicked(item))" id="deleteIcon_@item.Id" class="mdi mdi-delete text-danger cursorStyle" style="display:none"></i>
+											</td>
+										</tr>
+										{
+											sn++;
+										}
+									}
+								}
+								@if (Loading)
+								{
+									<tr>
+										<td colspan="4" class="text-center mb-2">
+											<div class="spinner-border text-primary" role="status" style="">
+												<span class="visually-hidden">Выполняется...</span>
+											</div>
+										</td>
+									</tr>
+								}
+							</ContentTemplate>
+						</NetcodeHubDataGrid>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</Col12Template>
+	<FooterTemplate><Footer /></FooterTemplate>
+</TwoSectionsTemplate>
+<NetcodeHubToast @ref="ToastComponent" />
+
+<Modal @bind-Open="IsOtherOpen"
+	   BootstrapClass="border-danger rounded p-2 ml-2"
+	   CustomStyle="position:relative; left:40vw; right:40w; top:30vh;">
+
+	<ContentContent>
+		<div class="card border-1 shadow-sm">
+			<div class="card-header">
+				<span class="text-center text-danger fw-bold">Отмена Заказа</span>
+				<i class="mdi mdi-close text-danger fw-bold float-end fs-4 cursorStyle" @onclick="CloseOtherModal"></i>
+			</div>
+		</div>
+		<div class="card-body">
+			<EditForm Model="OrderModel" OnValidSubmit="CancelOrder">
+				<DataAnnotationsValidator />
+				<div class="form-group mt-3">
+					<span class="text-center text-danger fw-bold">Точно отменить заказ?</span>
+				</div>
+				<div class="form-group mt-3 mb-3">
+					@if (Loading)
+					{
+						<GenericSpinnerButton Text="Отмена..." ButtonClass="btn btn-danger" />
+					}
+					else
+					{
+						<button type="submit" class="btn btn-success float-end">Отменить</button>
+					}
+				</div>
+				<ValidationSummary />
+			</EditForm>
+		</div>
+	</ContentContent>
+</Modal>
+
+@code {
+	string ModalTitle = "Новый продукт";
+	NetcodeHubToast? ToastComponent;
+	string ModalCustomStyle = string.Empty;
+	string Search = string.Empty;
+	//string Errors = "";
+
+	private Dictionary<string, string> BreadCrumbs = new Dictionary<string, string>
+	{
+		{"Home","app/home"},
+		{"Products", "app/products/manage"},
+		{"Manage Orders", null!}
+	};
+
+	public bool Loading { get; set; } = false;
+	public int Duration { get; set; }	
+	public bool IsOtherOpen { get; set; }
+	public int SkipValue;
+	public int TakeValue = 10;
+	[CascadingParameter] public Task<AuthenticationState>? UserAuthState { get; set; }
+	private IEnumerable<GetOrderResponseDTO> OrdersList { get; set; } = [];
+	private GetOrderResponseDTO OrderModel = new();
+	private UpdateClientOrderRequestDTO UpdateOrderModel = new();
+	ClaimsPrincipal? User;
+	private HubConnection? hubConnection;
+	//bool CanDelete = false;
+	Confirmation? confirmation;
+	private List<string> OrderStates;
+
+	[Parameter] public string? OrderStateParam { get; set; }
+
+	protected async override Task OnInitializedAsync()
+	{
+		User = (await UserAuthState!).User;
+		homeGenericState.StateChanged += StateButtonClicked;
+		await GetOrders();
+
+		hubConnection = connectionService.GetHubConnection();
+		hubConnection.On<string>("Notify", async (clientId) =>
+		{
+			await CallWhenNotified();
+		});
+		if (hubConnection == null)
+			await hubConnection!.StartAsync();
+	}
+
+	protected override void OnParametersSet()
+	{
+		if (string.IsNullOrEmpty(OrderStateParam) || !homeGenericState.IsAdmin)
+			return;
+		else
+			StateGeneralMethod();
+	}
+
+	async Task CallWhenNotified()
+	{
+		await GetOrders();
+		await InvokeAsync(async () =>
+		{
+			StateHasChanged();
+			await adminState.GetActiveOrdersCount();
+		});
+	}
+
+	void StateButtonClicked()
+	{
+		OrderStateParam = string.Empty;
+		var updateUrlTask = Task.Run(async () => js.InvokeVoidAsync("updateUrl", "app/administration"));
+		StateGeneralMethod();
+	}
+
+	void StateGeneralMethod()
+	{
+		string state = homeGenericState.StateName;
+		bool isAdmin = homeGenericState.IsAdmin;
+		StateHasChanged();
+	}
+
+	async Task GetOrders()
+	{
+		string userId = User!.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.NameIdentifier)!.Value.ToString();
+		Loading = true;
+		using var scope = serviceProvider.CreateScope();
+		var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+		OrdersList = await mediator.Send(new GetOrdersByIdQuery(userId));
+		Loading = false;
+	}
+
+	private async Task ToggleIcons(string itemId = null!, bool isHovering = false) => await js.InvokeVoidAsync("ToggleIcons", itemId, isHovering);
+	private async Task ToggleEditIcon(string itemId = null!, bool isHovering = false) => await js.InvokeVoidAsync("ToggleEditIcon", itemId, isHovering);
+	private async Task ToggleDeleteIcon(string itemId = null!, bool isHovering = false) => await js.InvokeVoidAsync("ToggleDeleteIcon", itemId, isHovering);
+	void OpenOtherModal() => IsOtherOpen = true;
+	void CloseOtherModal() => IsOtherOpen = false;
+
+	void OrderStateSelectionChanged(Microsoft.AspNetCore.Components.ChangeEventArgs e) => UpdateOrderModel.OrderState = e.Value!.ToString();
+	
+	private Guid IdHolder { get; set; } = Guid.Empty;
+	
+	void DeleteClicked(GetOrderResponseDTO order)
+	{
+		IdHolder = order.Id;
+		order.Adapt(OrderModel);
+		OpenOtherModal();
+	}
+
+	void EditClicked(GetOrderResponseDTO order)
+	{
+		ModalTitle = "Обновление категории";
+		OrderStates = new List<string>() { "Waiting", "Processing", "Canceled", "Complete" };
+		IdHolder = order.Id;
+		order.Adapt(OrderModel);		
+	}
+
+	async Task CancelOrder()
+	{
+		Loading = true;
+		await Task.Delay(2000);
+		ServiceResponse response = new(false, null);
+		if (IdHolder != Guid.Empty)
+		{
+			var order = OrderModel.Adapt(new GetOrderResponseDTO());
+			order.Id = IdHolder;
+			using var scope = serviceProvider.CreateScope();
+			var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+			response = await mediator.Send(new CancelOrderCommand(order.Id));
+			await accountService.SaveActivityAsync(new ActivityTrackerRequestDTO()
+				{
+					UserId = User!.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value.ToString(),
+					Title = "Отмена заказа",
+					Description = response.Message,
+					OperationState = response.Flag,
+					Date = DateTime.Now.Date
+				});
+		}
+
+		if (response.Flag)
+		{
+			await GetOrders();
+			await ToastComponent!.ShowSuccessToast("Info", response.Message);
+			OrderModel = new();
+			CloseOtherModal();
+		}
+		else
+		{
+			await ToastComponent!.ShowErrorToast("Alert", response.Message);
+		}
+		Loading = false;
+	}
+
+	public void Dispose() => homeGenericState.StateChanged -= StateButtonClicked;
+}

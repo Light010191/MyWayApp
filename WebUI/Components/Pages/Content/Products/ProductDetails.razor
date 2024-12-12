@@ -1,11 +1,12 @@
 ﻿@page "/app/products/details/{Id}"
+@rendermode InteractiveServer
 @attribute [Authorize(Policy = "AdministrationPolicy")]
 
 <PageTitle>Детальная информация</PageTitle>
 <ThreeSectionsTemplate>
 	<Col9Template>
 		<AdminHomeHeader/>
-		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick="true" BackgroundColor="@BreadCrumbBackgroundColor.Secondary()" />
+		<NetcodeHubBreadCrumb BreadCrumbs="BreadCrumbs" ReloadPageOnClick="true" BackgroundColor="@BreadCrumbBackgroundColor.SuccessSubtle()" />
 		@if(Product.Id!= Guid.Empty)
 		{
 			<div class="row mt-3">
@@ -16,7 +17,7 @@
 						<i class="d-flex mdi mdi-close text-danger fs-4 cursorStyle float-end"></i> @* @onclick="Click"></i> *@
 					</div>
 					<div class="card-body">
-						<div class="col-xl-12 col-md-6 stretch-card grid-margin-sm-0 pb-sm-3">
+						<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
 							<div class="card">
 								<div class="card-body px-3 py-4">
 									<div class="d-flex justify-content-between align-items-start">
@@ -30,12 +31,150 @@
 									</div>
 								</div>
 							</div>
+						</div>					
+						<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+							<div class="card">
+								<div class="card-body px-3 py-4">
+									<div class="d-flex justify-content-between align-items-start">
+										<div class="color-card">
+											<p class="mb-0 color-card-head text-dark">Описание Продукта</p>
+											<h2 class="text-muted fs-6">
+												@Product.Description
+											</h2>
+										</div>
+										<i class="card-icon-indicator mdi mdi-information bg-inverse-icon"></i>
+									</div>
+								</div>
+							</div>
 						</div>
+						<div class="row">
+							<div class="col-xl-6 col-md-6 col-sm-12 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+								<div class="card bg-secondary">
+									<div class="card-body px-3 py-4">
+										<div class="d-flex justify-content-between align-items-start">
+											<div class="color-card">
+												<p class="mb-0 color-card-head text-dark">Дата Добавления</p>
+												<h2 class="text-muted fs-6">
+													@Product.DateAdded
+												</h2>
+											</div>
+											<i class="card-icon-indicator mdi mdi-calendar bg-inverse-icon"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-xl-6 col-md-6 col-sm-12 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+								<div class="card bg-secondary">
+									<div class="card-body px-3 py-4">
+										<div class="d-flex justify-content-between align-items-start">
+											<div class="color-card">
+												<p class="mb-0 color-card-head text-dark">ID товара</p>
+												<h2 class="text-muted fs-6">
+													@Product.Id
+												</h2>
+											</div>
+											<i class="card-icon-indicator mdi mdi-spotlight bg-inverse-icon"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>						
 					</div>
 				</div>
 			</div>
 		}
+		else
+		{
+			< ButtonClass="btn-info" Text="Загрузка товара...."/>
+		}
 	</Col9Template>
+	<Col3Template>
+		@if(Product.Id != Guid.Empty)
+		{
+		<div class="row">
+			<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+				<div class="card bg-warning">
+					<div class="card-body px-3 py-4 bg-light text-dark" >
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="color-card text-dark d-flex justify-content-center">
+								@if (string.IsNullOrEmpty(Product.Base64Image))
+								{
+									<i class="mdi mdi-image-broken-variant fs-1 text-info"></i>
+								}
+								else
+								{
+									<img class="d-flex ml-5" src="@Product.Base64Image" height="100" alt="no image"/>
+								}								
+							</div>
+							<i class="card-icon-indicator mdi mdi-image bg-inverse-icon"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+				<div class="card bg-primary">
+					<div class="card-body px-3 py-4">
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="color-card">
+								<p class="mb-0 color-card-head">Категория</p>
+								<h2 class="text-white fs-5">
+									@Product.Category.Name
+								</h2>
+							</div>
+							<i class="card-icon-indicator mdi mdi-cube-outline bg-inverse-icon"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+				<div class="card bg-success">
+					<div class="card-body px-3 py-4">
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="color-card">
+								<p class="mb-0 color-card-head">Локация</p>
+								<h2 class="text-white fs-5">
+									@Product.Location.Name
+								</h2>
+							</div>
+							<i class="card-icon-indicator mdi mdi-briefcase-outline bg-inverse-icon"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+				<div class="card bg-primary">
+					<div class="card-body px-3 py-4">
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="color-card">
+								<p class="mb-0 color-card-head">Цена</p>
+								<h2 class="text-white fs-5">
+									@Product.Price
+								</h2>
+							</div>
+							<i class="card-icon-indicator mdi mdi-currency-rub bg-inverse-icon"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-12 col-md-6 stretch-card grid-margin grid-margin-sm-0 pb-sm-3">
+				<div class="card bg-success">
+					<div class="card-body px-3 py-4">
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="color-card">
+								<p class="mb-0 color-card-head">Количество</p>
+								<h2 class="text-white fs-5">
+									@Product.Quantity
+								</h2>
+							</div>
+							<i class="card-icon-indicator mdi mdi-resize-bottom-right bg-inverse-icon"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		}
+	</Col3Template>
+	<FooterTemplate> <Footer /> </FooterTemplate>
 </ThreeSectionsTemplate>
 
 @code {
@@ -45,10 +184,11 @@
 		{"Products", "app/products/manage"},
 		{"Product Details", null!}
 	};
+	//private HubConnection? hubConnection;
 	[Parameter] public string Id { get; set; } = string.Empty;
 	private GetProductResponseDTO Product { get; set; } = new();
 
-	protected async override Task OnInitializedAsync()
+	protected async override Task OnParametersSetAsync()
 	{
 		homeGenericState.StateChanged += StateButtonClicked;
 		if (Guid.Parse(Id) == Guid.Empty)
